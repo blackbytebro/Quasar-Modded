@@ -32,15 +32,15 @@
             Quasar.Server.Utilities.ListViewColumnSorter listViewColumnSorter1 = new Quasar.Server.Utilities.ListViewColumnSorter();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmNetworkMovement));
             this.aeroListView1 = new Quasar.Server.Controls.AeroListView();
+            this.columnInterface = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnAddresses = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnShares = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripRefreshItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMoveItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripExecuteItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripCommandItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnInterface = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripRefreshItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -59,10 +59,15 @@
             listViewColumnSorter1.SortColumn = 0;
             this.aeroListView1.LvwColumnSorter = listViewColumnSorter1;
             this.aeroListView1.Name = "aeroListView1";
-            this.aeroListView1.Size = new System.Drawing.Size(583, 306);
+            this.aeroListView1.Size = new System.Drawing.Size(766, 496);
             this.aeroListView1.TabIndex = 0;
             this.aeroListView1.UseCompatibleStateImageBehavior = false;
             this.aeroListView1.View = System.Windows.Forms.View.Details;
+            // 
+            // columnInterface
+            // 
+            this.columnInterface.Text = "Interface";
+            this.columnInterface.Width = 181;
             // 
             // columnAddresses
             // 
@@ -72,7 +77,7 @@
             // columnShares
             // 
             this.columnShares.Text = "Shares";
-            this.columnShares.Width = 317;
+            this.columnShares.Width = 501;
             // 
             // contextMenuStrip
             // 
@@ -84,19 +89,6 @@
             this.toolStripRefreshItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
             this.contextMenuStrip.Size = new System.Drawing.Size(176, 98);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(172, 6);
-            // 
-            // toolStripRefreshItem
-            // 
-            this.toolStripRefreshItem.Image = global::Quasar.Server.Properties.Resources.refresh;
-            this.toolStripRefreshItem.Name = "toolStripRefreshItem";
-            this.toolStripRefreshItem.Size = new System.Drawing.Size(175, 22);
-            this.toolStripRefreshItem.Text = "Refresh";
-            this.toolStripRefreshItem.Click += new System.EventHandler(this.toolStripRefreshItem_Click);
             // 
             // toolStripMoveItem
             // 
@@ -122,16 +114,24 @@
             this.toolStripCommandItem.Text = "Remote Command";
             this.toolStripCommandItem.Click += new System.EventHandler(this.toolStripCommandItem_Click);
             // 
-            // columnInterface
+            // toolStripSeparator1
             // 
-            this.columnInterface.Text = "Interface";
-            this.columnInterface.Width = 181;
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(172, 6);
+            // 
+            // toolStripRefreshItem
+            // 
+            this.toolStripRefreshItem.Image = global::Quasar.Server.Properties.Resources.refresh;
+            this.toolStripRefreshItem.Name = "toolStripRefreshItem";
+            this.toolStripRefreshItem.Size = new System.Drawing.Size(175, 22);
+            this.toolStripRefreshItem.Text = "Refresh";
+            this.toolStripRefreshItem.Click += new System.EventHandler(this.toolStripRefreshItem_Click);
             // 
             // FrmNetworkMovement
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(583, 306);
+            this.ClientSize = new System.Drawing.Size(766, 496);
             this.Controls.Add(this.aeroListView1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FrmNetworkMovement";

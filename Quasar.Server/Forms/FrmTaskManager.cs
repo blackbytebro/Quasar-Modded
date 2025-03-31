@@ -187,6 +187,7 @@ namespace Quasar.Server.Forms
                 {
                     FrmMemoryDump dumpFrm = FrmMemoryDump.CreateNewOrGetExisting(_connectClient, response);
                     _memoryDumps.Add(dumpFrm);
+                    dumpFrm.Disposed += (send, args) => _memoryDumps.Remove(dumpFrm);
                     dumpFrm.Show();
                 });
             } 

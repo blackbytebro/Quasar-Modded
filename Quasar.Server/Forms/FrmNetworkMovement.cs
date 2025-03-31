@@ -21,7 +21,7 @@ namespace Quasar.Server.Forms
         /// </summary>
         private readonly Client _connectClient;
 
-
+        private readonly NetworkHandler _networkHandler;
 
         /// <summary>
         /// Holds the opened network movement form for each client.
@@ -50,6 +50,7 @@ namespace Quasar.Server.Forms
         public FrmNetworkMovement(Client client)
         {
             _connectClient = client;
+            _networkHandler = new NetworkHandler(client);
 
             RegisterMessageHandler();
             InitializeComponent();
@@ -60,10 +61,12 @@ namespace Quasar.Server.Forms
         private void RegisterMessageHandler()
         {
             _connectClient.ClientState += ClientDisconnected;
+            MessageHandler.Register(_networkHandler);
         }
 
         private void UnregisterMessageHandler()
         {
+            MessageHandler.Unregister(_networkHandler);
             _connectClient.ClientState -= ClientDisconnected;
         }
 
@@ -78,26 +81,51 @@ namespace Quasar.Server.Forms
         private void FrmNetworkMovement_Load(object sender, EventArgs e)
         {
             this.Text = WindowHelper.GetWindowTitle("Network Movement", _connectClient);
+            _networkHandler.RefreshEntities();
         }
 
         private void toolStripMoveItem_Click(object sender, EventArgs e)
         {
+            string username = string.Empty;
+            string password = string.Empty;
+            string command = string.Empty;
+            if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
+                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK &&
+                InputBox.Show("Command", "Enter Command:", ref command) == DialogResult.OK)
+            {
 
+            }
         }
 
         private void toolStripExecuteItem_Click(object sender, EventArgs e)
         {
+            string username = string.Empty;
+            string password = string.Empty;
+            string command = string.Empty;
+            if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
+                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK &&
+                InputBox.Show("Command", "Enter Command:", ref command) == DialogResult.OK)
+            {
 
+            }
         }
 
         private void toolStripCommandItem_Click(object sender, EventArgs e)
         {
+            string username = string.Empty;
+            string password = string.Empty;
+            string command = string.Empty;
+            if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
+                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK &&
+                InputBox.Show("Command", "Enter Command:", ref command) == DialogResult.OK)
+            {
 
+            }
         }
 
         private void toolStripRefreshItem_Click(object sender, EventArgs e)
         {
-
+            _networkHandler.RefreshEntities();
         }
 
         private void FrmNetworkMovement_FormClosing(object sender, FormClosingEventArgs e)

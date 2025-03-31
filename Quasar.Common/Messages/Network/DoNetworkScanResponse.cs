@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using System.Net;
 using Quasar.Common.Messages.other;
 
 namespace Quasar.Common.Messages.Network
@@ -36,7 +37,7 @@ namespace Quasar.Common.Messages.Network
         public int interfaceIndex { get; set; }
 
         [ProtoMember(2)]
-        public string Address { get; set; }
+        public IPAddress Address { get; set; }
 
         [ProtoMember(3)]
         public int[] Ports { get; set; }

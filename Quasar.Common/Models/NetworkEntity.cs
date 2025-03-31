@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using System.Net;
 using Quasar.Common.Enums;
 
 namespace Quasar.Common.Models
@@ -13,7 +14,7 @@ namespace Quasar.Common.Models
         public string MAC { get; set; }
 
         [ProtoMember(3)]
-        public string Address { get; set; }
+        public IPAddress Address { get; set; }
 
         [ProtoMember(4)]
         public int[] Ports { get; set; }
