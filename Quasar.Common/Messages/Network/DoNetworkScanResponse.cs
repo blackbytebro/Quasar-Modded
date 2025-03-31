@@ -14,17 +14,17 @@ namespace Quasar.Common.Messages.Network
         public string FailureReason { get; set; }
 
         [ProtoMember(3)]
-        public InterfaceEntity[] Interfaces { get; set; }
+        public InterfaceEntity Interface { get; set; }
 
         [ProtoMember(4)]
-        public AddressEntity[] Addresses { get; set; }
+        public AddressEntity Address { get; set; }
     }
 
     [ProtoContract]
     public struct InterfaceEntity
     {
         [ProtoMember(1)]
-        public string name { get; set; }
+        public string Name { get; set; }
 
         [ProtoMember(2)]
         public string MAC { get; set; }
@@ -34,7 +34,7 @@ namespace Quasar.Common.Messages.Network
     public struct AddressEntity
     {
         [ProtoMember(1)]
-        public int interfaceIndex { get; set; }
+        public int InterfaceIndex { get; set; }
 
         [ProtoMember(2)]
         public IPAddress Address { get; set; }

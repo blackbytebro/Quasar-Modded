@@ -11,11 +11,23 @@ using Quasar.Common.Messages.Network;
 using System.Collections;
 using System.Diagnostics;
 using System.Net;
+using System;
 
 namespace Quasar.Server.Messages
 {
+    public class NetworkScanResponseEventArgs : EventArgs
+    {
+        public DoNetworkScanResponse Packet { get; set; }
+        public NetworkScanResponseEventArgs(DoNetworkScanResponse packet)
+        {
+            this.Packet = packet;
+        }
+    }
+
     public class NetworkHandler : MessageProcessorBase<NetworkEntity[]>
     {
+        public event EventHandler<NetworkScanResponseEventArgs> NetworkScanResponseEvent;
+
         private readonly Client _client;
 
         public NetworkHandler(Client client) : base(true)
@@ -29,6 +41,11 @@ namespace Quasar.Server.Messages
                                                              message is DoUploadAndExecuteResponse;
 
         public override bool CanExecuteFrom(ISender sender) => _client.Equals(sender);
+
+        protected virtual void OnNetworkScanResponse(NetworkScanResponseEventArgs e)
+        {
+            NetworkScanResponseEvent?.Invoke(this, e);
+        }
 
         public override void Execute(ISender sender, IMessage message)
         {
@@ -71,7 +88,7 @@ namespace Quasar.Server.Messages
 
         private void Execute(ISender client, DoNetworkScanResponse message)
         {
-            MessageBox.Show("Received Network Scan Response!");
+            OnNetworkScanResponse(new NetworkScanResponseEventArgs(message));
         }
 
         private void Execute(ISender client, DoClientMovementResponse message)

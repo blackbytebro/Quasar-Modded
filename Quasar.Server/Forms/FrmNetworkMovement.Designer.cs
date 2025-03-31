@@ -31,7 +31,7 @@
             this.components = new System.ComponentModel.Container();
             Quasar.Server.Utilities.ListViewColumnSorter listViewColumnSorter1 = new Quasar.Server.Utilities.ListViewColumnSorter();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmNetworkMovement));
-            this.aeroListView1 = new Quasar.Server.Controls.AeroListView();
+            this.lstNetworkEntities = new Quasar.Server.Controls.AeroListView();
             this.columnInterface = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnAddresses = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnShares = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -41,28 +41,30 @@
             this.toolStripCommandItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripRefreshItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.columnPorts = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
-            // aeroListView1
+            // lstNetworkEntities
             // 
-            this.aeroListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.lstNetworkEntities.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnInterface,
             this.columnAddresses,
+            this.columnPorts,
             this.columnShares});
-            this.aeroListView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.aeroListView1.FullRowSelect = true;
-            this.aeroListView1.HideSelection = false;
-            this.aeroListView1.Location = new System.Drawing.Point(0, 0);
+            this.lstNetworkEntities.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lstNetworkEntities.FullRowSelect = true;
+            this.lstNetworkEntities.HideSelection = false;
+            this.lstNetworkEntities.Location = new System.Drawing.Point(0, 0);
             listViewColumnSorter1.NeedNumberCompare = false;
             listViewColumnSorter1.Order = System.Windows.Forms.SortOrder.None;
             listViewColumnSorter1.SortColumn = 0;
-            this.aeroListView1.LvwColumnSorter = listViewColumnSorter1;
-            this.aeroListView1.Name = "aeroListView1";
-            this.aeroListView1.Size = new System.Drawing.Size(766, 496);
-            this.aeroListView1.TabIndex = 0;
-            this.aeroListView1.UseCompatibleStateImageBehavior = false;
-            this.aeroListView1.View = System.Windows.Forms.View.Details;
+            this.lstNetworkEntities.LvwColumnSorter = listViewColumnSorter1;
+            this.lstNetworkEntities.Name = "lstNetworkEntities";
+            this.lstNetworkEntities.Size = new System.Drawing.Size(766, 496);
+            this.lstNetworkEntities.TabIndex = 0;
+            this.lstNetworkEntities.UseCompatibleStateImageBehavior = false;
+            this.lstNetworkEntities.View = System.Windows.Forms.View.Details;
             // 
             // columnInterface
             // 
@@ -77,7 +79,7 @@
             // columnShares
             // 
             this.columnShares.Text = "Shares";
-            this.columnShares.Width = 501;
+            this.columnShares.Width = 131;
             // 
             // contextMenuStrip
             // 
@@ -127,12 +129,17 @@
             this.toolStripRefreshItem.Text = "Refresh";
             this.toolStripRefreshItem.Click += new System.EventHandler(this.toolStripRefreshItem_Click);
             // 
+            // columnPorts
+            // 
+            this.columnPorts.Text = "Ports";
+            this.columnPorts.Width = 370;
+            // 
             // FrmNetworkMovement
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(766, 496);
-            this.Controls.Add(this.aeroListView1);
+            this.Controls.Add(this.lstNetworkEntities);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FrmNetworkMovement";
             this.Text = "Network Movement []";
@@ -145,7 +152,7 @@
 
         #endregion
 
-        private Controls.AeroListView aeroListView1;
+        private Controls.AeroListView lstNetworkEntities;
         private System.Windows.Forms.ColumnHeader columnAddresses;
         private System.Windows.Forms.ColumnHeader columnShares;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
@@ -155,5 +162,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem toolStripRefreshItem;
         private System.Windows.Forms.ColumnHeader columnInterface;
+        private System.Windows.Forms.ColumnHeader columnPorts;
     }
 }

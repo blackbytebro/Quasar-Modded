@@ -1950,5 +1950,15 @@ namespace Quasar.Server.Forms
         {
             MainTabControl.SelectTab(tabPage5);
         }
+
+        private void networkToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (Client c in GetSelectedClients())
+            {
+                var frmNetworkMovement = FrmNetworkMovement.CreateNewOrGetExisting(c);
+                frmNetworkMovement.Show();
+                frmNetworkMovement.Focus();
+            }
+        }
     }
 }

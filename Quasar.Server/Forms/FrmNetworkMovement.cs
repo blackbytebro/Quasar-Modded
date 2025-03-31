@@ -11,6 +11,7 @@ using Quasar.Server.Networking;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace Quasar.Server.Forms
 {
@@ -61,13 +62,62 @@ namespace Quasar.Server.Forms
         private void RegisterMessageHandler()
         {
             _connectClient.ClientState += ClientDisconnected;
+            _networkHandler.NetworkScanResponseEvent += NetworkEntitiesChanged;
             MessageHandler.Register(_networkHandler);
         }
 
         private void UnregisterMessageHandler()
         {
             MessageHandler.Unregister(_networkHandler);
+            _networkHandler.NetworkScanResponseEvent -= NetworkEntitiesChanged;
             _connectClient.ClientState -= ClientDisconnected;
+        }
+
+        private void NetworkEntitiesChanged(object sender, NetworkScanResponseEventArgs args)
+        {
+            IEnumerable<ListViewItem> entities = lstNetworkEntities.Items.Cast<ListViewItem>().Where(item => item.SubItems.Count > 2 && item.SubItems[1].Text == args.Packet.Address.Address.ToString());
+            if (entities.Count() > 0)
+            {
+                ListViewItem existingEntity = entities.ToArray()[0];
+                if (lstNetworkEntities.InvokeRequired)
+                {
+                    lstNetworkEntities.Invoke((MethodInvoker)delegate
+                    {
+                        int index = lstNetworkEntities.Items.IndexOf(existingEntity);
+                        lstNetworkEntities.Items[index].Text = args.Packet.Interface.Name;
+                        lstNetworkEntities.Items[index].SubItems[2].Text = string.Join(", ", args.Packet.Address.Ports);
+                        lstNetworkEntities.Items[index].SubItems[3].Text = string.Join(", ", args.Packet.Address.Shares);
+                    });
+                } 
+                else
+                {
+                    int index = lstNetworkEntities.Items.IndexOf(existingEntity);
+                    lstNetworkEntities.Items[index].Text = args.Packet.Interface.Name;
+                    lstNetworkEntities.Items[index].SubItems[2].Text = string.Join(", ", args.Packet.Address.Ports);
+                    lstNetworkEntities.Items[index].SubItems[3].Text = string.Join(", ", args.Packet.Address.Shares);
+                }
+            }
+            else
+            {
+                ListViewItem newNetworkEntity = new ListViewItem();
+                if (lstNetworkEntities.InvokeRequired) 
+                {
+                    lstNetworkEntities.Invoke((MethodInvoker)delegate
+                    {
+                        newNetworkEntity.Text = args.Packet.Interface.Name;
+                        newNetworkEntity.SubItems.Add(args.Packet.Address.Address.ToString());
+                        newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Ports));
+                        newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Shares));
+                    });
+                }
+                else
+                {
+                    newNetworkEntity.Text = args.Packet.Interface.Name;
+                    newNetworkEntity.SubItems.Add(args.Packet.Address.Address.ToString());
+                    newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Ports));
+                    newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Shares));
+                }
+            }
         }
 
         private void ClientDisconnected(Client client, bool connected)
@@ -125,6 +175,7 @@ namespace Quasar.Server.Forms
 
         private void toolStripRefreshItem_Click(object sender, EventArgs e)
         {
+            lstNetworkEntities.Items.Clear();
             _networkHandler.RefreshEntities();
         }
 
