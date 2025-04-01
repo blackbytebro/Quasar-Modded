@@ -34,6 +34,7 @@
             this.lstNetworkEntities = new Quasar.Server.Controls.AeroListView();
             this.columnInterface = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnAddresses = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnPorts = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnShares = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMoveItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -41,7 +42,6 @@
             this.toolStripCommandItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripRefreshItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnPorts = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -52,6 +52,7 @@
             this.columnAddresses,
             this.columnPorts,
             this.columnShares});
+            this.lstNetworkEntities.ContextMenuStrip = this.contextMenuStrip;
             this.lstNetworkEntities.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lstNetworkEntities.FullRowSelect = true;
             this.lstNetworkEntities.HideSelection = false;
@@ -60,8 +61,9 @@
             listViewColumnSorter1.Order = System.Windows.Forms.SortOrder.None;
             listViewColumnSorter1.SortColumn = 0;
             this.lstNetworkEntities.LvwColumnSorter = listViewColumnSorter1;
+            this.lstNetworkEntities.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.lstNetworkEntities.Name = "lstNetworkEntities";
-            this.lstNetworkEntities.Size = new System.Drawing.Size(766, 496);
+            this.lstNetworkEntities.Size = new System.Drawing.Size(1021, 610);
             this.lstNetworkEntities.TabIndex = 0;
             this.lstNetworkEntities.UseCompatibleStateImageBehavior = false;
             this.lstNetworkEntities.View = System.Windows.Forms.View.Details;
@@ -76,13 +78,19 @@
             this.columnAddresses.Text = "IP";
             this.columnAddresses.Width = 80;
             // 
+            // columnPorts
+            // 
+            this.columnPorts.Text = "Ports";
+            this.columnPorts.Width = 370;
+            // 
             // columnShares
             // 
             this.columnShares.Text = "Shares";
-            this.columnShares.Width = 131;
+            this.columnShares.Width = 386;
             // 
             // contextMenuStrip
             // 
+            this.contextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMoveItem,
             this.toolStripExecuteItem,
@@ -90,13 +98,13 @@
             this.toolStripSeparator1,
             this.toolStripRefreshItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(176, 98);
+            this.contextMenuStrip.Size = new System.Drawing.Size(208, 114);
             // 
             // toolStripMoveItem
             // 
             this.toolStripMoveItem.Image = global::Quasar.Server.Properties.Resources.computer_go;
             this.toolStripMoveItem.Name = "toolStripMoveItem";
-            this.toolStripMoveItem.Size = new System.Drawing.Size(175, 22);
+            this.toolStripMoveItem.Size = new System.Drawing.Size(207, 26);
             this.toolStripMoveItem.Text = "Move To";
             this.toolStripMoveItem.Click += new System.EventHandler(this.toolStripMoveItem_Click);
             // 
@@ -104,7 +112,7 @@
             // 
             this.toolStripExecuteItem.Image = global::Quasar.Server.Properties.Resources.application_go;
             this.toolStripExecuteItem.Name = "toolStripExecuteItem";
-            this.toolStripExecuteItem.Size = new System.Drawing.Size(175, 22);
+            this.toolStripExecuteItem.Size = new System.Drawing.Size(207, 26);
             this.toolStripExecuteItem.Text = "Remote Execute";
             this.toolStripExecuteItem.Click += new System.EventHandler(this.toolStripExecuteItem_Click);
             // 
@@ -112,35 +120,31 @@
             // 
             this.toolStripCommandItem.Image = global::Quasar.Server.Properties.Resources.application_view_xp_terminal;
             this.toolStripCommandItem.Name = "toolStripCommandItem";
-            this.toolStripCommandItem.Size = new System.Drawing.Size(175, 22);
+            this.toolStripCommandItem.Size = new System.Drawing.Size(207, 26);
             this.toolStripCommandItem.Text = "Remote Command";
             this.toolStripCommandItem.Click += new System.EventHandler(this.toolStripCommandItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(172, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(204, 6);
             // 
             // toolStripRefreshItem
             // 
             this.toolStripRefreshItem.Image = global::Quasar.Server.Properties.Resources.refresh;
             this.toolStripRefreshItem.Name = "toolStripRefreshItem";
-            this.toolStripRefreshItem.Size = new System.Drawing.Size(175, 22);
+            this.toolStripRefreshItem.Size = new System.Drawing.Size(207, 26);
             this.toolStripRefreshItem.Text = "Refresh";
             this.toolStripRefreshItem.Click += new System.EventHandler(this.toolStripRefreshItem_Click);
             // 
-            // columnPorts
-            // 
-            this.columnPorts.Text = "Ports";
-            this.columnPorts.Width = 370;
-            // 
             // FrmNetworkMovement
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(766, 496);
+            this.ClientSize = new System.Drawing.Size(1021, 610);
             this.Controls.Add(this.lstNetworkEntities);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "FrmNetworkMovement";
             this.Text = "Network Movement []";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmNetworkMovement_FormClosing);
