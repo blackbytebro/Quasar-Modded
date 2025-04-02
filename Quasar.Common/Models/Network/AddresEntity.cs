@@ -1,25 +1,21 @@
 ﻿using ProtoBuf;
 using System.Net;
-using Quasar.Common.Enums;
 
-namespace Quasar.Common.Models
+namespace Quasar.Common.Models.Network
 {
     [ProtoContract]
-    public class NetworkEntity
+    public struct AddressEntity
     {
         [ProtoMember(1)]
-        public string Interface { get; set; }
+        public int InterfaceIndex { get; set; }
 
         [ProtoMember(2)]
-        public string MAC { get; set; }
-
-        [ProtoMember(3)]
         public IPAddress Address { get; set; }
 
-        [ProtoMember(4)]
+        [ProtoMember(3)]
         public int[] Ports { get; set; }
 
-        [ProtoMember(5)]
+        [ProtoMember(4)]
         public string[] Shares { get; set; }
     }
 }

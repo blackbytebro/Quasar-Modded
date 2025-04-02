@@ -1,4 +1,5 @@
 ﻿using Quasar.Common.Messages.Network;
+using Quasar.Common.Models.Network;
 using Quasar.Common.Networking;
 using System.Management;
 using System.Collections.Generic;
@@ -27,6 +28,40 @@ namespace Quasar.Client.Helper.Network
                 interfaceResults.Add(entity);
             }
             return interfaceResults;
+        }
+
+        public static int CalculateTotalPotentialIPs(InterfaceEntity entity)
+        {
+            string normalizedMac = entity.MAC.Replace(":", "").Replace("-", "").ToUpper();
+            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+            NetworkInterface nic = interfaces.FirstOrDefault(card => card.GetPhysicalAddress().ToString().ToUpper() == normalizedMac);
+
+            if (nic == null)
+                return 0;
+
+            var ipProps = nic.GetIPProperties();
+            var unicastAddresses = ipProps.UnicastAddresses.Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork);
+            int totalPotentialIPs = 0;
+            foreach (var unicast in unicastAddresses)
+            {
+                IPAddress ipAddress = unicast.Address;
+                IPAddress subnetMask = unicast.IPv4Mask;
+
+                if (subnetMask == null)
+                    continue;
+
+                IPAddress networkAddress = GetNetworkAddress(ipAddress, subnetMask);
+                IPAddress broadcastAddress = GetBroadcastAddress(ipAddress, subnetMask);
+
+                uint networkUint = IpToUint(networkAddress);
+                uint broadcastUint = IpToUint(broadcastAddress);
+                if (broadcastUint > networkUint + 1)
+                {
+                    int usable = (int)(broadcastUint - networkUint - 1);
+                    totalPotentialIPs += usable;
+                }
+            }
+            return totalPotentialIPs;
         }
 
         public static void ScanInterfaceAction(InterfaceEntity entity, Action<AddressEntity, InterfaceEntity> action, ISender client)

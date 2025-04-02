@@ -1,5 +1,7 @@
 ﻿using Quasar.Common.Enums;
 using Quasar.Common.Messages;
+using Quasar.Common.Messages.Network;
+using Quasar.Common.Models.Network;
 // Custom
 using Quasar.Common.Models;
 using Quasar.Server.Controls;
@@ -23,6 +25,8 @@ namespace Quasar.Server.Forms
         private readonly Client _connectClient;
 
         private readonly NetworkHandler _networkHandler;
+
+        private InterfaceEntity[] interfaces;
 
         /// <summary>
         /// Holds the opened network movement form for each client.
@@ -63,12 +67,14 @@ namespace Quasar.Server.Forms
         {
             _connectClient.ClientState += ClientDisconnected;
             _networkHandler.NetworkScanResponseEvent += NetworkEntitiesChanged;
+            _networkHandler.InterfaceScanResponseEvent += InterfaceEntitiesChanged;
             MessageHandler.Register(_networkHandler);
         }
 
         private void UnregisterMessageHandler()
         {
             MessageHandler.Unregister(_networkHandler);
+            _networkHandler.InterfaceScanResponseEvent -= InterfaceEntitiesChanged;
             _networkHandler.NetworkScanResponseEvent -= NetworkEntitiesChanged;
             _connectClient.ClientState -= ClientDisconnected;
         }
@@ -88,7 +94,7 @@ namespace Quasar.Server.Forms
                         lstNetworkEntities.Items[index].SubItems[2].Text = string.Join(", ", args.Packet.Address.Ports);
                         lstNetworkEntities.Items[index].SubItems[3].Text = string.Join(", ", args.Packet.Address.Shares);
                     });
-                } 
+                }
                 else
                 {
                     int index = lstNetworkEntities.Items.IndexOf(existingEntity);
@@ -100,7 +106,7 @@ namespace Quasar.Server.Forms
             else
             {
                 ListViewItem newNetworkEntity = new ListViewItem();
-                if (lstNetworkEntities.InvokeRequired) 
+                if (lstNetworkEntities.InvokeRequired)
                 {
                     lstNetworkEntities.Invoke((MethodInvoker)delegate
                     {
@@ -120,6 +126,60 @@ namespace Quasar.Server.Forms
             }
         }
 
+        private void InterfaceEntitiesChanged(object sender, InterfaceScanResponseEventArgs args)
+        {
+            interfaces = args.Packet.Interfaces;
+            if (args.Packet.Interfaces.Length == args.Packet.PotentialIps.Length)
+            {
+                if (cmbInterfaces.InvokeRequired)
+                {
+                    cmbInterfaces.BeginInvoke((MethodInvoker)delegate
+                    {
+                        cmbInterfaces.Items.Clear();
+                        for (int i = 0; i < args.Packet.Interfaces.Length; i++)
+                        {
+                            cmbInterfaces.Items.Add($"{args.Packet.Interfaces[i].Name} ({args.Packet.PotentialIps[i]} IPs)");
+                        }
+                        cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
+                    });
+                }
+                else
+                {
+                    cmbInterfaces.Items.Clear();
+                    for (int i = 0; i < args.Packet.Interfaces.Length; i++)
+                    {
+                        cmbInterfaces.Items.Add($"{args.Packet.Interfaces[i].Name} ({args.Packet.PotentialIps[i]} IPs)");
+                    }
+                    cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
+                }
+            }
+            else
+            {
+                // IP Count mismatch. Default to just interface data
+                if (cmbInterfaces.InvokeRequired)
+                {
+                    cmbInterfaces.BeginInvoke((MethodInvoker)delegate
+                    {
+                        cmbInterfaces.Items.Clear();
+                        foreach (InterfaceEntity nic in args.Packet.Interfaces)
+                        {
+                            cmbInterfaces.Items.Add($"{nic.Name}");
+                        }
+                        cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
+                    });
+                }
+                else
+                {
+                    cmbInterfaces.Items.Clear();
+                    foreach (InterfaceEntity nic in args.Packet.Interfaces)
+                    {
+                        cmbInterfaces.Items.Add($"{nic.Name}");
+                    }
+                    cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
+                }
+            }
+        }
+
         private void ClientDisconnected(Client client, bool connected)
         {
             if (!connected)
@@ -131,7 +191,7 @@ namespace Quasar.Server.Forms
         private void FrmNetworkMovement_Load(object sender, EventArgs e)
         {
             this.Text = WindowHelper.GetWindowTitle("Network Movement", _connectClient);
-            _networkHandler.RefreshEntities();
+            _networkHandler.RefreshInterfaces();
         }
 
         private void toolStripMoveItem_Click(object sender, EventArgs e)
@@ -176,7 +236,7 @@ namespace Quasar.Server.Forms
         private void toolStripRefreshItem_Click(object sender, EventArgs e)
         {
             lstNetworkEntities.Items.Clear();
-            _networkHandler.RefreshEntities();
+            _networkHandler.RefreshInterfaces();
         }
 
         private void FrmNetworkMovement_FormClosing(object sender, FormClosingEventArgs e)

