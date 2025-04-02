@@ -44,6 +44,7 @@
             this.toolStripRefreshItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cmbInterfaces = new System.Windows.Forms.ComboBox();
             this.btnInterfaceRefresh = new System.Windows.Forms.Button();
+            this.btnScan = new System.Windows.Forms.Button();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -58,13 +59,13 @@
             this.lstNetworkEntities.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.lstNetworkEntities.FullRowSelect = true;
             this.lstNetworkEntities.HideSelection = false;
-            this.lstNetworkEntities.Location = new System.Drawing.Point(0, 44);
+            this.lstNetworkEntities.Location = new System.Drawing.Point(0, 47);
             listViewColumnSorter1.NeedNumberCompare = false;
             listViewColumnSorter1.Order = System.Windows.Forms.SortOrder.None;
             listViewColumnSorter1.SortColumn = 0;
             this.lstNetworkEntities.LvwColumnSorter = listViewColumnSorter1;
             this.lstNetworkEntities.Name = "lstNetworkEntities";
-            this.lstNetworkEntities.Size = new System.Drawing.Size(806, 452);
+            this.lstNetworkEntities.Size = new System.Drawing.Size(807, 452);
             this.lstNetworkEntities.TabIndex = 0;
             this.lstNetworkEntities.UseCompatibleStateImageBehavior = false;
             this.lstNetworkEntities.View = System.Windows.Forms.View.Details;
@@ -87,7 +88,7 @@
             // columnShares
             // 
             this.columnShares.Text = "Shares";
-            this.columnShares.Width = 171;
+            this.columnShares.Width = 172;
             // 
             // contextMenuStrip
             // 
@@ -144,24 +145,37 @@
             this.cmbInterfaces.FormattingEnabled = true;
             this.cmbInterfaces.Location = new System.Drawing.Point(0, 0);
             this.cmbInterfaces.Name = "cmbInterfaces";
-            this.cmbInterfaces.Size = new System.Drawing.Size(806, 21);
+            this.cmbInterfaces.Size = new System.Drawing.Size(807, 21);
             this.cmbInterfaces.TabIndex = 1;
             // 
             // btnInterfaceRefresh
             // 
-            this.btnInterfaceRefresh.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnInterfaceRefresh.Dock = System.Windows.Forms.DockStyle.Left;
             this.btnInterfaceRefresh.Location = new System.Drawing.Point(0, 21);
             this.btnInterfaceRefresh.Name = "btnInterfaceRefresh";
-            this.btnInterfaceRefresh.Size = new System.Drawing.Size(806, 23);
+            this.btnInterfaceRefresh.Size = new System.Drawing.Size(404, 26);
             this.btnInterfaceRefresh.TabIndex = 2;
             this.btnInterfaceRefresh.Text = "Refresh";
             this.btnInterfaceRefresh.UseVisualStyleBackColor = true;
+            this.btnInterfaceRefresh.Click += new System.EventHandler(this.btnInterfaceRefresh_Click);
+            // 
+            // btnScan
+            // 
+            this.btnScan.Dock = System.Windows.Forms.DockStyle.Right;
+            this.btnScan.Location = new System.Drawing.Point(403, 21);
+            this.btnScan.Name = "btnScan";
+            this.btnScan.Size = new System.Drawing.Size(404, 26);
+            this.btnScan.TabIndex = 3;
+            this.btnScan.Text = "Scan";
+            this.btnScan.UseVisualStyleBackColor = true;
+            this.btnScan.Click += new System.EventHandler(this.btnScan_Click);
             // 
             // FrmNetworkMovement
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(806, 496);
+            this.ClientSize = new System.Drawing.Size(807, 499);
+            this.Controls.Add(this.btnScan);
             this.Controls.Add(this.btnInterfaceRefresh);
             this.Controls.Add(this.cmbInterfaces);
             this.Controls.Add(this.lstNetworkEntities);
@@ -190,5 +204,6 @@
         private System.Windows.Forms.ColumnHeader columnPorts;
         private System.Windows.Forms.ComboBox cmbInterfaces;
         private System.Windows.Forms.Button btnInterfaceRefresh;
+        private System.Windows.Forms.Button btnScan;
     }
 }

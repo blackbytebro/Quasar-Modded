@@ -11,6 +11,7 @@ using Quasar.Server.Messages;
 using Quasar.Server.Networking;
 
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Linq;
@@ -26,7 +27,8 @@ namespace Quasar.Server.Forms
 
         private readonly NetworkHandler _networkHandler;
 
-        private InterfaceEntity[] interfaces;
+        private BindingList<InterfaceBoxItem> _interfaceItems;
+        private BindingList<EntityListItem> _networkEntities;
 
         /// <summary>
         /// Holds the opened network movement form for each client.
@@ -56,11 +58,27 @@ namespace Quasar.Server.Forms
         {
             _connectClient = client;
             _networkHandler = new NetworkHandler(client);
+            _interfaceItems = new BindingList<InterfaceBoxItem>();
 
             RegisterMessageHandler();
             InitializeComponent();
 
+            cmbInterfaces.DataSource = _interfaceItems;
+            _networkEntities.ListChanged += NetworkEntitiesChanged;
+
             DarkModeManager.ApplyDarkMode(this);
+        }
+
+        private void NetworkEntitiesChanged(object sender, ListChangedEventArgs e)
+        {
+            lstNetworkEntities.BeginUpdate();
+            lstNetworkEntities.Items.Clear();
+            foreach (EntityListItem obj in _networkEntities)
+            {
+                ListViewItem item = obj.toItem();
+                lstNetworkEntities.Items.Add(item);
+            }
+            lstNetworkEntities.EndUpdate();
         }
 
         private void RegisterMessageHandler()
@@ -81,101 +99,32 @@ namespace Quasar.Server.Forms
 
         private void NetworkEntitiesChanged(object sender, NetworkScanResponseEventArgs args)
         {
-            IEnumerable<ListViewItem> entities = lstNetworkEntities.Items.Cast<ListViewItem>().Where(item => item.SubItems.Count > 2 && item.SubItems[1].Text == args.Packet.Address.Address.ToString());
-            if (entities.Count() > 0)
+            MessageBox.Show("Holy shit entity changes!");
+            try
             {
-                ListViewItem existingEntity = entities.ToArray()[0];
-                if (lstNetworkEntities.InvokeRequired)
-                {
-                    lstNetworkEntities.Invoke((MethodInvoker)delegate
-                    {
-                        int index = lstNetworkEntities.Items.IndexOf(existingEntity);
-                        lstNetworkEntities.Items[index].Text = args.Packet.Interface.Name;
-                        lstNetworkEntities.Items[index].SubItems[2].Text = string.Join(", ", args.Packet.Address.Ports);
-                        lstNetworkEntities.Items[index].SubItems[3].Text = string.Join(", ", args.Packet.Address.Shares);
-                    });
-                }
-                else
-                {
-                    int index = lstNetworkEntities.Items.IndexOf(existingEntity);
-                    lstNetworkEntities.Items[index].Text = args.Packet.Interface.Name;
-                    lstNetworkEntities.Items[index].SubItems[2].Text = string.Join(", ", args.Packet.Address.Ports);
-                    lstNetworkEntities.Items[index].SubItems[3].Text = string.Join(", ", args.Packet.Address.Shares);
-                }
+                _networkEntities.Remove(_networkEntities.Where(item => item.address.Address.ToString() == args.Packet.Address.ToString() && item.nic.Name == args.Packet.Interface.Name).FirstOrDefault());
             }
-            else
+            finally
             {
-                ListViewItem newNetworkEntity = new ListViewItem();
-                if (lstNetworkEntities.InvokeRequired)
-                {
-                    lstNetworkEntities.Invoke((MethodInvoker)delegate
-                    {
-                        newNetworkEntity.Text = args.Packet.Interface.Name;
-                        newNetworkEntity.SubItems.Add(args.Packet.Address.Address.ToString());
-                        newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Ports));
-                        newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Shares));
-                    });
-                }
-                else
-                {
-                    newNetworkEntity.Text = args.Packet.Interface.Name;
-                    newNetworkEntity.SubItems.Add(args.Packet.Address.Address.ToString());
-                    newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Ports));
-                    newNetworkEntity.SubItems.Add(string.Join(", ", args.Packet.Address.Shares));
-                }
+                _networkEntities.Add(new EntityListItem { Result = args.Packet.Result, FailureReason = args.Packet.FailureReason, address = args.Packet.Address, nic = args.Packet.Interface });
             }
         }
 
         private void InterfaceEntitiesChanged(object sender, InterfaceScanResponseEventArgs args)
         {
-            interfaces = args.Packet.Interfaces;
+            _interfaceItems.Clear();
             if (args.Packet.Interfaces.Length == args.Packet.PotentialIps.Length)
             {
-                if (cmbInterfaces.InvokeRequired)
+                for (int i = 0; i < args.Packet.Interfaces.Length; i++)
                 {
-                    cmbInterfaces.BeginInvoke((MethodInvoker)delegate
-                    {
-                        cmbInterfaces.Items.Clear();
-                        for (int i = 0; i < args.Packet.Interfaces.Length; i++)
-                        {
-                            cmbInterfaces.Items.Add($"{args.Packet.Interfaces[i].Name} ({args.Packet.PotentialIps[i]} IPs)");
-                        }
-                        cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
-                    });
-                }
-                else
-                {
-                    cmbInterfaces.Items.Clear();
-                    for (int i = 0; i < args.Packet.Interfaces.Length; i++)
-                    {
-                        cmbInterfaces.Items.Add($"{args.Packet.Interfaces[i].Name} ({args.Packet.PotentialIps[i]} IPs)");
-                    }
-                    cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
+                    _interfaceItems.Add(new InterfaceBoxItem { entity = args.Packet.Interfaces[i], potentialIps = args.Packet.PotentialIps[i] });
                 }
             }
             else
             {
-                // IP Count mismatch. Default to just interface data
-                if (cmbInterfaces.InvokeRequired)
+                foreach (InterfaceEntity nic in args.Packet.Interfaces)
                 {
-                    cmbInterfaces.BeginInvoke((MethodInvoker)delegate
-                    {
-                        cmbInterfaces.Items.Clear();
-                        foreach (InterfaceEntity nic in args.Packet.Interfaces)
-                        {
-                            cmbInterfaces.Items.Add($"{nic.Name}");
-                        }
-                        cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
-                    });
-                }
-                else
-                {
-                    cmbInterfaces.Items.Clear();
-                    foreach (InterfaceEntity nic in args.Packet.Interfaces)
-                    {
-                        cmbInterfaces.Items.Add($"{nic.Name}");
-                    }
-                    cmbInterfaces.Text = cmbInterfaces.Items[0].ToString();
+                    _interfaceItems.Add(new InterfaceBoxItem { entity = nic, potentialIps = -1 });
                 }
             }
         }
@@ -200,8 +149,7 @@ namespace Quasar.Server.Forms
             string password = string.Empty;
             string command = string.Empty;
             if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
-                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK &&
-                InputBox.Show("Command", "Enter Command:", ref command) == DialogResult.OK)
+                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK
             {
 
             }
@@ -213,8 +161,7 @@ namespace Quasar.Server.Forms
             string password = string.Empty;
             string command = string.Empty;
             if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
-                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK &&
-                InputBox.Show("Command", "Enter Command:", ref command) == DialogResult.OK)
+                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK)
             {
 
             }
@@ -243,5 +190,47 @@ namespace Quasar.Server.Forms
         {
             UnregisterMessageHandler();
         }
+
+        private void btnInterfaceRefresh_Click(object sender, EventArgs e)
+        {
+            _networkHandler.RefreshInterfaces();
+        }
+
+        private void btnScan_Click(object sender, EventArgs e)
+        {
+            _networkHandler.RefreshEntities((cmbInterfaces.SelectedItem as InterfaceBoxItem).entity);
+        }
+    }
+
+    public class InterfaceBoxItem
+    {
+        public InterfaceEntity entity { get; set; }
+        public int potentialIps { get; set; }
+        public override string ToString()
+        {
+            return entity.Name + (potentialIps > -1 ? $" ({potentialIps} IPs)" : "");
+        }
+    }
+
+    public class EntityListItem
+    {
+        public AddressEntity address { get; set; }
+
+        public InterfaceEntity nic { get; set; }
+
+        public bool Result { get; set; }
+
+        public string FailureReason { get; set; }
+
+        public ListViewItem toItem()
+        {
+            ListViewItem lvi = new ListViewItem();
+            lvi.Text = nic.Name.ToString();
+            lvi.SubItems.Add(address.Address.ToString());
+            lvi.SubItems.Add(string.Join(", ", address.Ports));
+            lvi.SubItems.Add(string.Join(", ", address.Shares));
+            return lvi;
+        }
+
     }
 }

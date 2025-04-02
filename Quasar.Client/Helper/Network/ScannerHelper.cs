@@ -74,7 +74,10 @@ namespace Quasar.Client.Helper.Network
             int targetInterfaceIndex = Array.IndexOf(interfaces, targetInterface);
 
             if (targetInterface == null)
+            {
+                MessageBox.Show("Failed to find interface!");
                 return; // Interface Not Found
+            }
 
             var ipProps = targetInterface.GetIPProperties();
             var unicastAddresses = ipProps.UnicastAddresses.Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork);
@@ -85,7 +88,10 @@ namespace Quasar.Client.Helper.Network
                 IPAddress subnetMask = unicast.IPv4Mask;
 
                 if (subnetMask == null)
+                {
+                    MessageBox.Show("Failed to find subnet!");
                     return; // Subnet Not Found
+                }
 
                 IPAddress networkAddress = GetNetworkAddress(ipAddress, subnetMask);
                 IPAddress broadcastAddress = GetBroadcastAddress(ipAddress, subnetMask);
@@ -116,7 +122,7 @@ namespace Quasar.Client.Helper.Network
                         {
                             try
                             {
-                                PingReply reply = ping.Send(currentIp, 100);
+                                PingReply reply = ping.Send(currentIp, 1000);
                                 if (reply.Status != IPStatus.Success)
                                 {
                                     return;
