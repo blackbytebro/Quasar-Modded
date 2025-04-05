@@ -109,6 +109,7 @@ public void ConnectLoop()
                 }
                 catch (Exception ex) when (ex is NullReferenceException || ex is ObjectDisposedException)
                 {
+                    this.ReportException(ex);
                     Disconnect();
                     return;
                 }
@@ -247,6 +248,7 @@ public void ConnectLoop()
         private void OnClientFail(Client client, Exception ex)
         {
             Debug.WriteLine("Client Fail - Exception Message: " + ex.Message);
+            client.ReportException(ex);
             client.Disconnect();
         }
 

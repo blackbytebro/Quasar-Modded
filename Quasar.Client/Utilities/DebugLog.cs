@@ -41,6 +41,7 @@ namespace Quasar.Client.User
         private void LogException(Exception ex)
         {
             Debug.WriteLine($"Exception: {ex.Message}\nStack Trace: {ex.StackTrace}");
+            _client.ReportException(ex);
         }
 
         public void Dispose()

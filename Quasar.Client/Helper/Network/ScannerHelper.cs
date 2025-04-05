@@ -64,7 +64,7 @@ namespace Quasar.Client.Helper.Network
             return totalPotentialIPs;
         }
 
-        public static void ScanInterfaceAction(InterfaceEntity entity, Action<AddressEntity, InterfaceEntity> action, ISender client)
+        public static void ScanInterfaceAction(InterfaceEntity entity, Action<AddressEntity, InterfaceEntity> action, Action<int, int, int, int> progress)
         {
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
             string normalizedMac = entity.MAC.Replace(":", "").Replace("-", "").ToUpper();
@@ -95,17 +95,18 @@ namespace Quasar.Client.Helper.Network
 
                 IPAddress networkAddress = GetNetworkAddress(ipAddress, subnetMask);
                 IPAddress broadcastAddress = GetBroadcastAddress(ipAddress, subnetMask);
+                MessageBox.Show($"Grabbed!\nNetwork: {networkAddress}\nBroadcast: {broadcastAddress}");
 
                 uint start = IpToUint(networkAddress) + 1;
                 uint end = IpToUint(broadcastAddress) + 1;
 
                 List<IPAddress> ipList = new List<IPAddress>();
-                int totalIps = ipList.Count;
                 for (uint current = start; current <= end; current++)
                 {
                     ipList.Add(UintToIp(current));
                 }
-                
+                int totalIps = ipList.Count;
+
                 ParallelOptions ipScanOptions = new ParallelOptions
                 {
                     MaxDegreeOfParallelism = 5
@@ -113,11 +114,11 @@ namespace Quasar.Client.Helper.Network
                 int remainingIps = totalIps;
                 Parallel.ForEach(ipList, ipScanOptions, currentIp =>
                 {
-                    Interlocked.Increment(ref remainingIps);
+                    Interlocked.Decrement(ref remainingIps);
                     try
                     {
                         // targetInterfaceIndex must be 1-indexed for math reasons
-                        client.Send(new NetworkScanProgress { Interfaces = totalInterfaces, InterfaceIndex = targetInterfaceIndex + 1, Addresses = totalIps, CurrentAddress = remainingIps });
+                        progress(totalInterfaces, targetInterfaceIndex + 1, totalIps, remainingIps);
                         using (Ping ping = new Ping())
                         {
                             try
@@ -127,12 +128,14 @@ namespace Quasar.Client.Helper.Network
                                 {
                                     return;
                                 }
+                                MessageBox.Show("System Responded!", $"{currentIp}");
                             }
                             catch
                             {
                                 return;
                             }
                         }
+                        MessageBox.Show("Starting port scan...", $"{currentIp}");
                         AddressEntity networkEntity = new AddressEntity { InterfaceIndex = targetInterfaceIndex, Address = currentIp, Ports = new int[] { }, Shares = new string[] { } };
                         List<int> ports = new List<int>();
                         for (int port = 1; port < 65535; port++)
@@ -142,12 +145,14 @@ namespace Quasar.Client.Helper.Network
                                 ports.Add(port);
                             }
                         }
+                        MessageBox.Show("Finished port scan!", $"{currentIp}");
                         networkEntity.Ports = ports.ToArray();
                         //Share detection?
                         action(networkEntity, entity);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        MessageBox.Show(ex.ToString());
                         // Generic Failure
                     }
                 });
