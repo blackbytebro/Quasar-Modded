@@ -108,6 +108,8 @@ namespace Quasar.Server.Forms
 
         private void NetworkEntitiesChanged(object sender, NetworkScanResponseEventArgs args)
         {
+            MessageBox.Show("Wow, a network scan response!");
+            /*
             try
             {
                 _networkEntities.Remove(_networkEntities.Where(item => item.address.Address.ToString() == args.Packet.Address.ToString() && item.nic.Name == args.Packet.Interface.Name).FirstOrDefault());
@@ -116,6 +118,7 @@ namespace Quasar.Server.Forms
             {
                 _networkEntities.Add(new EntityListItem { Result = args.Packet.Result, FailureReason = args.Packet.FailureReason, address = args.Packet.Address, nic = args.Packet.Interface });
             }
+            */
         }
 
         private void InterfaceEntitiesChanged(object sender, InterfaceScanResponseEventArgs args)
@@ -157,16 +160,21 @@ namespace Quasar.Server.Forms
             }
             else
             {
+                // Cast one operand to double BEFORE dividing to avoid integer division.
+                double progressPercentage = 100 - (((double)args.Packet.CurrentAddress / args.Packet.Addresses) * 100);
+                // Round to 2 decimal places and format as a string with two decimals.
+                string progressText = Math.Round(progressPercentage, 2).ToString("F2");
+
                 if (statusStrip.InvokeRequired)
                 {
                     statusStrip.BeginInvoke((MethodInvoker)delegate
                     {
-                        toolStripProgress.Text = $"Status: Scanning {args.Packet.Addresses} IPs... ({Math.Round((double)(args.Packet.CurrentAddress / args.Packet.Addresses), 4)}% Complete)";
+                        toolStripProgress.Text = $"Status: Scanning {args.Packet.Addresses} IPs... ({progressText}% Complete)";
                     });
                 }
                 else
                 {
-                    toolStripProgress.Text = $"Status: Scanning {args.Packet.Addresses} IPs... ({Math.Round((double)(args.Packet.CurrentAddress / args.Packet.Addresses), 4)}% Complete)";
+                    toolStripProgress.Text = $"Status: Scanning {args.Packet.Addresses} IPs... ({progressText}% Complete)";
                 }
             }
         }
