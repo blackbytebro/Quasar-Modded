@@ -164,11 +164,15 @@ namespace Quasar.Client.Helper.Network
                                     {
                                         ports.Add(port);
                                     }
-                                    lock (networkEntity) 
+                                    networkEntity.Ports = ports.ToArray();
+                                    DoNetworkScanResponse portPacket = new DoNetworkScanResponse
                                     {
-                                        networkEntity.Ports = ports.ToArray();
-                                    }
-                                    action(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = networkEntity, Interface = entity });
+                                        Result = true,
+                                        FailureReason = "",
+                                        Address = networkEntity,
+                                        Interface = entity
+                                    };
+                                    action(portPacket);
                                 }
                             }
                             finally

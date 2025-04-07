@@ -167,24 +167,29 @@ namespace Quasar.Server.Forms
                     {
                         int listLocation = lstNetworkEntities.Items.IndexOf(item);
                         bool wasSelected = item.Selected;
+                        ListViewItem newItem = instance.toItem();
+                        lstNetworkEntities.BeginUpdate();
+                        lstNetworkEntities.Items[listLocation].Text = newItem.Text;
+                        for (int i = 0; i < lstNetworkEntities.Items[listLocation].SubItems.Count; i++)
+                        {
+                            if (i < lstNetworkEntities.Items[listLocation].SubItems.Count)
+                            {
+                                lstNetworkEntities.Items[listLocation].SubItems[i] = newItem.SubItems[i];
+                            }
+                        }
+                        lstNetworkEntities.Items[listLocation].Selected = wasSelected;
+                        lstNetworkEntities.EndUpdate();
                         if (lstNetworkEntities.InvokeRequired)
                         {
                             lstNetworkEntities.BeginInvoke((MethodInvoker)delegate
                             {
-                                lstNetworkEntities.BeginUpdate();
-                                lstNetworkEntities.Items[listLocation] = instance.toItem();
+                                //Redraw's dont have darkmode. Fix that
                                 lstNetworkEntities.RedrawItems(listLocation, listLocation, false);
-                                lstNetworkEntities.Items[listLocation].Selected = wasSelected;
-                                lstNetworkEntities.EndUpdate();
                             });
                         }
                         else
                         {
-                            lstNetworkEntities.BeginUpdate();
-                            lstNetworkEntities.Items[listLocation] = instance.toItem();
                             lstNetworkEntities.RedrawItems(listLocation, listLocation, false);
-                            lstNetworkEntities.Items[listLocation].Selected = wasSelected;
-                            lstNetworkEntities.EndUpdate();
                         }
                     }
                 }
