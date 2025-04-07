@@ -1,5 +1,6 @@
 ﻿using ProtoBuf;
 using Quasar.Common.Messages.other;
+using Quasar.Common.Models.Network;
 
 namespace Quasar.Common.Messages.Network
 {
@@ -17,5 +18,20 @@ namespace Quasar.Common.Messages.Network
 
         [ProtoMember(4)]
         public int CurrentAddress { get; set; }
+
+        [ProtoMember(5)]
+        public bool ScanningPorts { get; set; }
+
+        [ProtoMember(6)]
+        public bool ScanningShares { get; set; }
+
+        [ProtoMember(7)]
+        public int CurrentPort { get; set; }
+
+        [ProtoMember(8)]
+        public AddressEntity Address { get; set; }
+
+        [ProtoMember(9)]
+        public InterfaceEntity NIC { get; set; }
     }
 }

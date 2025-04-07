@@ -31,11 +31,6 @@
             this.components = new System.ComponentModel.Container();
             Quasar.Server.Utilities.ListViewColumnSorter listViewColumnSorter1 = new Quasar.Server.Utilities.ListViewColumnSorter();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmNetworkMovement));
-            this.lstNetworkEntities = new Quasar.Server.Controls.AeroListView();
-            this.columnInterface = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnAddresses = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnPorts = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnShares = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMoveItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripExecuteItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -47,50 +42,15 @@
             this.btnScan = new System.Windows.Forms.Button();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripProgress = new System.Windows.Forms.ToolStripStatusLabel();
+            this.lstNetworkEntities = new Quasar.Server.Controls.AeroListView();
+            this.columnInterface = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnAddresses = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnPorts = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnShares = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // lstNetworkEntities
-            // 
-            this.lstNetworkEntities.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnInterface,
-            this.columnAddresses,
-            this.columnPorts,
-            this.columnShares});
-            this.lstNetworkEntities.ContextMenuStrip = this.contextMenuStrip;
-            this.lstNetworkEntities.FullRowSelect = true;
-            this.lstNetworkEntities.HideSelection = false;
-            this.lstNetworkEntities.Location = new System.Drawing.Point(0, 51);
-            listViewColumnSorter1.NeedNumberCompare = false;
-            listViewColumnSorter1.Order = System.Windows.Forms.SortOrder.None;
-            listViewColumnSorter1.SortColumn = 0;
-            this.lstNetworkEntities.LvwColumnSorter = listViewColumnSorter1;
-            this.lstNetworkEntities.Name = "lstNetworkEntities";
-            this.lstNetworkEntities.Size = new System.Drawing.Size(807, 421);
-            this.lstNetworkEntities.TabIndex = 0;
-            this.lstNetworkEntities.UseCompatibleStateImageBehavior = false;
-            this.lstNetworkEntities.View = System.Windows.Forms.View.Details;
-            // 
-            // columnInterface
-            // 
-            this.columnInterface.Text = "Interface";
-            this.columnInterface.Width = 181;
-            // 
-            // columnAddresses
-            // 
-            this.columnAddresses.Text = "IP";
-            this.columnAddresses.Width = 80;
-            // 
-            // columnPorts
-            // 
-            this.columnPorts.Text = "Ports";
-            this.columnPorts.Width = 370;
-            // 
-            // columnShares
-            // 
-            this.columnShares.Text = "Shares";
-            this.columnShares.Width = 172;
             // 
             // contextMenuStrip
             // 
@@ -186,6 +146,53 @@
             this.toolStripProgress.Size = new System.Drawing.Size(73, 17);
             this.toolStripProgress.Text = "Status: Idle...";
             // 
+            // lstNetworkEntities
+            // 
+            this.lstNetworkEntities.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnInterface,
+            this.columnAddresses,
+            this.columnPorts,
+            this.columnShares,
+            this.columnStatus});
+            this.lstNetworkEntities.ContextMenuStrip = this.contextMenuStrip;
+            this.lstNetworkEntities.FullRowSelect = true;
+            this.lstNetworkEntities.HideSelection = false;
+            this.lstNetworkEntities.Location = new System.Drawing.Point(0, 51);
+            listViewColumnSorter1.NeedNumberCompare = false;
+            listViewColumnSorter1.Order = System.Windows.Forms.SortOrder.None;
+            listViewColumnSorter1.SortColumn = 0;
+            this.lstNetworkEntities.LvwColumnSorter = listViewColumnSorter1;
+            this.lstNetworkEntities.Name = "lstNetworkEntities";
+            this.lstNetworkEntities.Size = new System.Drawing.Size(807, 421);
+            this.lstNetworkEntities.TabIndex = 0;
+            this.lstNetworkEntities.UseCompatibleStateImageBehavior = false;
+            this.lstNetworkEntities.View = System.Windows.Forms.View.Details;
+            // 
+            // columnInterface
+            // 
+            this.columnInterface.Text = "Interface";
+            this.columnInterface.Width = 98;
+            // 
+            // columnAddresses
+            // 
+            this.columnAddresses.Text = "IP";
+            this.columnAddresses.Width = 97;
+            // 
+            // columnPorts
+            // 
+            this.columnPorts.Text = "Ports";
+            this.columnPorts.Width = 342;
+            // 
+            // columnShares
+            // 
+            this.columnShares.Text = "Shares";
+            this.columnShares.Width = 181;
+            // 
+            // columnStatus
+            // 
+            this.columnStatus.Text = "Status";
+            this.columnStatus.Width = 85;
+            // 
             // FrmNetworkMovement
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -227,5 +234,6 @@
         private System.Windows.Forms.Button btnScan;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel toolStripProgress;
+        private System.Windows.Forms.ColumnHeader columnStatus;
     }
 }
