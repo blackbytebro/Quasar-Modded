@@ -159,11 +159,11 @@ namespace Quasar.Client.Helper.Network
                                     NIC = entity,
                                     Address = networkEntity
                                 });
-                                if (IsPortOpen(currentIp, port, 500))
+                                if (IsPortOpen(currentIp, currentPort, 500))
                                 { 
                                     lock (ports)
                                     {
-                                        ports.Add(port);
+                                        ports.Add(currentPort);
                                     }
                                     networkEntity.Ports = ports.ToArray();
                                     DoNetworkScanResponse portPacket = new DoNetworkScanResponse
@@ -173,7 +173,6 @@ namespace Quasar.Client.Helper.Network
                                         Address = networkEntity,
                                         Interface = entity
                                     };
-                                    MessageBox.Show($"{currentIp} Found Port {port}");
                                     action(portPacket);
                                 }
                             }
