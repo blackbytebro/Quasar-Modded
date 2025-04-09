@@ -257,34 +257,69 @@ namespace Quasar.Server.Forms
             foreach (ListViewItem netEntities in lstNetworkEntities.SelectedItems) 
             {
                 EntityListItem entity = _networkEntities.Where(item => item.Entity.Address.Address == netEntities.SubItems[1].Text && item.Entity.NIC.Name == netEntities.SubItems[0].Text).FirstOrDefault();
-                string username = string.Empty;
-                string password = string.Empty;
-                if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
-                    InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK)
+                FrmNetworkMovementRequest requestForm = new FrmNetworkMovementRequest(_connectClient, entity.Entity.Address, entity.Entity.Address.Shares, false, false);
+                if (requestForm.ShowDialog() == DialogResult.OK)
                 {
-                    _networkHandler.MoveToEntity(entity.Entity, username, password);
+                    if (requestForm.Request.UseShare)
+                    {
+                        ShareEntity share = entity.Entity.Address.Shares.Where(s => s.ShareName == requestForm.Request.SharePath).FirstOrDefault();
+                        _networkHandler.MoveToEntity(
+                            entity.Entity,
+                            requestForm.Request.Username,
+                            requestForm.Request.Password,
+                            share,
+                            requestForm.Request.AsAdmin,
+                            requestForm.Request.DeleteAfter
+                        );
+                    }
+                    else {
+                        _networkHandler.MoveToEntity(
+                            entity.Entity,
+                            requestForm.Request.Username,
+                            requestForm.Request.Password,
+                            null,
+                            requestForm.Request.AsAdmin,
+                            requestForm.Request.DeleteAfter
+                        );
+                    }
                 }
             }
         }
 
         private void toolStripExecuteItem_Click(object sender, EventArgs e)
         {
-            string username = string.Empty;
-            string password = string.Empty;
-            if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
-                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK)
+            foreach (ListViewItem netEntities in lstNetworkEntities.SelectedItems)
             {
-                using (OpenFileDialog ofd = new OpenFileDialog())
+                EntityListItem entity = _networkEntities.Where(item => item.Entity.Address.Address == netEntities.SubItems[1].Text && item.Entity.NIC.Name == netEntities.SubItems[0].Text).FirstOrDefault();
+                FrmNetworkMovementRequest requestForm = new FrmNetworkMovementRequest(_connectClient, entity.Entity.Address, entity.Entity.Address.Shares, false, true);
+                if (requestForm.ShowDialog() == DialogResult.OK)
                 {
-                    ofd.Title = "";
-                    ofd.Multiselect = false;
-                    ofd.InitialDirectory = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                    ofd.RestoreDirectory = true;
-                    ofd.Filter = "";
-                    ofd.CheckFileExists = true;
-                    if (ofd.ShowDialog() == DialogResult.OK)
+                    if (requestForm.Request.UseShare)
                     {
-
+                        ShareEntity share = entity.Entity.Address.Shares.Where(s => s.ShareName == requestForm.Request.SharePath).FirstOrDefault();
+                        /*
+                        _networkHandler.UploadAndExecute(
+                            entity.Entity,
+                            requestForm.Request.Username,
+                            requestForm.Request.Password,
+                            share,
+                            requestForm.Request.AsAdmin,
+                            requestForm.Request.DeleteAfter
+                        );
+                        */
+                    }
+                    else
+                    {
+                        /*
+                        _networkHandler.UploadAndExecute(
+                            entity.Entity,
+                            requestForm.Request.Username,
+                            requestForm.Request.Password,
+                            null,
+                            requestForm.Request.AsAdmin,
+                            requestForm.Request.DeleteAfter
+                        );
+                        */
                     }
                 }
             }
@@ -292,14 +327,40 @@ namespace Quasar.Server.Forms
 
         private void toolStripCommandItem_Click(object sender, EventArgs e)
         {
-            string username = string.Empty;
-            string password = string.Empty;
-            string command = string.Empty;
-            if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
-                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK &&
-                InputBox.Show("Command", "Enter Command:", ref command) == DialogResult.OK)
+            foreach (ListViewItem netEntities in lstNetworkEntities.SelectedItems)
             {
-
+                EntityListItem entity = _networkEntities.Where(item => item.Entity.Address.Address == netEntities.SubItems[1].Text && item.Entity.NIC.Name == netEntities.SubItems[0].Text).FirstOrDefault();
+                FrmNetworkMovementRequest requestForm = new FrmNetworkMovementRequest(_connectClient, entity.Entity.Address, entity.Entity.Address.Shares, true, false);
+                if (requestForm.ShowDialog() == DialogResult.OK)
+                {
+                    if (requestForm.Request.UseShare)
+                    {
+                        ShareEntity share = entity.Entity.Address.Shares.Where(s => s.ShareName == requestForm.Request.SharePath).FirstOrDefault();
+                        /*
+                        _networkHandler.RemoteExecute(
+                            entity.Entity,
+                            requestForm.Request.Username,
+                            requestForm.Request.Password,
+                            share,
+                            requestForm.Request.AsAdmin,
+                            requestForm.Request.DeleteAfter
+                        );
+                        */
+                    }
+                    else
+                    {
+                        /*
+                        _networkHandler.RemoteExecute(
+                            entity.Entity,
+                            requestForm.Request.Username,
+                            requestForm.Request.Password,
+                            null,
+                            requestForm.Request.AsAdmin,
+                            requestForm.Request.DeleteAfter
+                        );
+                        */
+                    }
+                }
             }
         }
 
