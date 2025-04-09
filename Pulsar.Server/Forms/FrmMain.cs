@@ -2018,5 +2018,15 @@ namespace Pulsar.Server.Forms
                 }
             }
         }
+
+        private void networkMovementToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (Client c in GetSelectedClients())
+            {
+                FrmNetworkMovement frmNetworkMovement = FrmNetworkMovement.CreateNewOrGetExisting(c);
+                frmNetworkMovement.Show();
+                frmNetworkMovement.Focus();
+            }
+        }
     }
 }
