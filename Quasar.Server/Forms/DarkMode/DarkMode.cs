@@ -410,13 +410,6 @@ namespace DarkModeForms
             }
         }
 
-        public void ApplyTheme(Control element, bool pIsDarkMode = true)
-        {
-            //_IsDarkMode = _IsDarkMode != pIsDarkMode ? pIsDarkMode : _IsDarkMode;
-
-            //OScolors = GetSystemColors()
-        }
-
         public void ApplyTheme(DisplayMode pColorMode)
         {
             _IsDarkMode = isDarkMode(); //<- Gets the current color mode from Windows

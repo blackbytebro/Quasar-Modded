@@ -100,14 +100,26 @@ namespace Quasar.Server.Forms
 
         private void NetworkEntitiesChanged(object sender, NetworkScanResponseEventArgs args)
         {
-            EntityListItem instance = _networkEntities.Where(item => item.address.Address == args.Packet.Address.Address && item.nic.Name == args.Packet.Interface.Name).FirstOrDefault();
+            EntityListItem instance = _networkEntities.Where(
+                item => item.Entity.Address.Address == args.Packet.Address.Address && 
+                item.Entity.NIC.Name == args.Packet.Interface.Name
+            ).FirstOrDefault();
             try
             {
                 if (instance != null)
                 {
                     _networkEntities.Remove(instance);
                 }
-                _networkEntities.Add(new EntityListItem { Result = args.Packet.Result, FailureReason = args.Packet.FailureReason, address = args.Packet.Address, nic = args.Packet.Interface });
+                EntityListItem newEntity = new EntityListItem
+                {
+                    Result = args.Packet.Result,
+                    FailureReason = args.Packet.FailureReason,
+                    Entity = new NetworkEntity { Address = args.Packet.Address, NIC = args.Packet.Interface }
+                    //But Deadman, Why dont we create the NetworkEntity client side and prevent all this mess?
+                    //Because we dont want to have to transmit all the interface data everytime we send an update
+                    //So we send the interface index instead and handle the assignment server side
+                };
+                _networkEntities.Add(newEntity);
             }
             catch (Exception ex)
             {
@@ -140,7 +152,7 @@ namespace Quasar.Server.Forms
             //But you only have to fix that if we have some STUPID fucking users.
             if (args.Packet.Address != null && args.Packet.NIC != null)
             {
-                EntityListItem instance = _networkEntities.Where(item => item.address.Address == args.Packet.Address.Address && item.nic.Name == args.Packet.NIC.Name).FirstOrDefault();
+                EntityListItem instance = _networkEntities.Where(item => item.Entity.Address.Address == args.Packet.Address.Address && item.Entity.NIC.Name == args.Packet.NIC.Name).FirstOrDefault();
                 if (instance != null)
                 {
                     int location = _networkEntities.IndexOf(instance);
@@ -174,7 +186,7 @@ namespace Quasar.Server.Forms
                         {
                             if (i < lstNetworkEntities.Items[listLocation].SubItems.Count)
                             {
-                                lstNetworkEntities.Items[listLocation].SubItems[i] = newItem.SubItems[i];
+                                lstNetworkEntities.Items[listLocation].SubItems[i].Text = newItem.SubItems[i].Text;
                             }
                         }
                         lstNetworkEntities.Items[listLocation].Selected = wasSelected;
@@ -183,7 +195,6 @@ namespace Quasar.Server.Forms
                         {
                             lstNetworkEntities.BeginInvoke((MethodInvoker)delegate
                             {
-                                //Redraw's dont have darkmode. Fix that
                                 lstNetworkEntities.RedrawItems(listLocation, listLocation, false);
                             });
                         }
@@ -243,13 +254,16 @@ namespace Quasar.Server.Forms
 
         private void toolStripMoveItem_Click(object sender, EventArgs e)
         {
-            string username = string.Empty;
-            string password = string.Empty;
-            string command = string.Empty;
-            if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
-                InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK)
+            foreach (ListViewItem netEntities in lstNetworkEntities.SelectedItems) 
             {
-
+                EntityListItem entity = _networkEntities.Where(item => item.Entity.Address.Address == netEntities.SubItems[1].Text && item.Entity.NIC.Name == netEntities.SubItems[0].Text).FirstOrDefault();
+                string username = string.Empty;
+                string password = string.Empty;
+                if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
+                    InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK)
+                {
+                    _networkHandler.MoveToEntity(entity.Entity, username, password);
+                }
             }
         }
 
@@ -257,11 +271,22 @@ namespace Quasar.Server.Forms
         {
             string username = string.Empty;
             string password = string.Empty;
-            string command = string.Empty;
             if (InputBox.Show("Username", "Enter Username:", ref username) == DialogResult.OK &&
                 InputBox.Show("Password", "Enter Password:", ref password) == DialogResult.OK)
             {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    ofd.Title = "";
+                    ofd.Multiselect = false;
+                    ofd.InitialDirectory = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                    ofd.RestoreDirectory = true;
+                    ofd.Filter = "";
+                    ofd.CheckFileExists = true;
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                    {
 
+                    }
+                }
             }
         }
 
@@ -313,9 +338,7 @@ namespace Quasar.Server.Forms
 
     public class EntityListItem
     {
-        public AddressEntity address { get; set; }
-
-        public InterfaceEntity nic { get; set; }
+        public NetworkEntity Entity { get; set; }
 
         public bool Result { get; set; }
 
@@ -330,23 +353,23 @@ namespace Quasar.Server.Forms
         public ListViewItem toItem()
         {
             ListViewItem lvi = new ListViewItem();
-            lvi.Text = nic.Name.ToString();
-            lvi.SubItems.Add(address.Address.ToString());
-            if (address.Ports == null || address.Ports.Length < 1)
+            lvi.Text = Entity.NIC.Name.ToString();
+            lvi.SubItems.Add(Entity.Address.Address.ToString());
+            if (Entity.Address.Ports == null || Entity.Address.Ports.Length < 1)
             {
                 lvi.SubItems.Add("");
             }
             else
             {
-                lvi.SubItems.Add(string.Join(", ", address.Ports));
+                lvi.SubItems.Add(string.Join(", ", Entity.Address.Ports));
             }
-            if (address.Shares == null || address.Shares.Length < 1)
+            if (Entity.Address.Shares == null || Entity.Address.Shares.Length < 1)
             {
                 lvi.SubItems.Add("");
             }
             else
             {
-                List<string> shares = address.Shares.Select(s => $"{s.ShareName} ({(s.RequiresCredentials ? "🔒" : "")})").ToList();
+                List<string> shares = Entity.Address.Shares.Select(s => $"{s.ShareName} ({(s.RequiresCredentials ? "🔒" : "")})").ToList();
                 lvi.SubItems.Add(string.Join(", ", shares));
             }
             if (ScanningPorts || ScanningShares)

